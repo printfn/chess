@@ -1,4 +1,4 @@
-use core::fmt;
+use core::{fmt, ops};
 
 pub struct Bitboard {
 	value: u64,
@@ -38,6 +38,30 @@ impl Bitboard {
 	/// Returns the number of bits set in this bitboard
 	pub fn count(&self) -> u8 {
 		self.value.count_ones() as u8
+	}
+}
+
+impl ops::BitOr for Bitboard {
+	type Output = Self;
+
+	fn bitor(self, rhs: Self) -> Self::Output {
+		Self::new(self.value | rhs.value)
+	}
+}
+
+impl ops::BitAnd for Bitboard {
+	type Output = Self;
+
+	fn bitand(self, rhs: Self) -> Self::Output {
+		Self::new(self.value & rhs.value)
+	}
+}
+
+impl ops::Not for Bitboard {
+	type Output = Self;
+
+	fn not(self) -> Self::Output {
+		Self::new(!self.value)
 	}
 }
 

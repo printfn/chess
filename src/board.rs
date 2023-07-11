@@ -6,6 +6,13 @@ pub struct Board {
 	pieces: [Option<(Player, Piece)>; 64],
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct Move {
+	pub from: Pos,
+	pub to: Pos,
+	pub promotion: Option<Piece>,
+}
+
 impl Board {
 	pub fn empty() -> Self {
 		Self { pieces: [None; 64] }
@@ -20,6 +27,30 @@ impl Board {
 			board.pieces[i * 8 + 7] = Some((Player::Black, piece));
 		}
 		board
+	}
+
+	fn player_pieces(&self, player: Player) -> Bitboard {
+		let mut result = Bitboard::empty();
+		for (i, piece) in self.pieces.iter().enumerate() {
+			if let Some((p, _)) = piece {
+				if *p == player {
+					result.set(i as u8);
+				}
+			}
+		}
+		result
+	}
+
+	fn simple_piece_moves(&self, pos: Pos) -> Bitboard {
+		let (player, piece) = self[pos].expect("no piece at position");
+		match piece {
+			Piece::Pawn => todo!(),
+			Piece::Knight => !self.player_pieces(player) & pos.knight_moves(),
+			Piece::Bishop => todo!(),
+			Piece::Rook => todo!(),
+			Piece::Queen => todo!(),
+			Piece::King => !self.player_pieces(player) & pos.adjacent(),
+		}
 	}
 }
 

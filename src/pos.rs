@@ -37,6 +37,14 @@ impl Pos {
 		debug_assert!(value < 64);
 		Self { pos: value }
 	}
+
+	pub fn adjacent(self) -> Bitboard {
+		Bitboard::new(ADJACENT_BITBOARDS[self.value() as usize])
+	}
+
+	pub fn knight_moves(self) -> Bitboard {
+		Bitboard::new(KNIGHT_BITBOARDS[self.value() as usize])
+	}
 }
 
 impl TryFrom<&str> for Pos {

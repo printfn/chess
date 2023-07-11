@@ -1,9 +1,20 @@
-use core::fmt;
+use core::{fmt, ops};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Player {
 	White,
 	Black,
+}
+
+impl ops::Not for Player {
+	type Output = Self;
+
+	fn not(self) -> Self::Output {
+		match self {
+			Player::White => Player::Black,
+			Player::Black => Player::White,
+		}
+	}
 }
 
 impl fmt::Display for Player {
