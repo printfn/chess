@@ -71,6 +71,24 @@ impl From<File> for &str {
 	}
 }
 
+impl TryFrom<char> for File {
+	type Error = &'static str;
+
+	fn try_from(value: char) -> Result<Self, Self::Error> {
+		Ok(match value {
+			'a' | 'A' => File::A,
+			'b' | 'B' => File::B,
+			'c' | 'C' => File::C,
+			'd' | 'D' => File::D,
+			'e' | 'E' => File::E,
+			'f' | 'F' => File::F,
+			'g' | 'G' => File::G,
+			'h' | 'H' => File::H,
+			_ => return Err("invalid file"),
+		})
+	}
+}
+
 impl From<&File> for &str {
 	fn from(value: &File) -> Self {
 		Self::from(*value)

@@ -1,14 +1,18 @@
 #![no_std]
 
 mod bitboard;
+mod board;
 mod file;
 mod piece;
+mod player;
 mod pos;
 mod rank;
 
 pub use bitboard::Bitboard;
+pub use board::Board;
 pub use file::{File, FILES};
-pub use piece::Piece;
+pub use piece::{Piece, HOME_ROW};
+pub use player::Player;
 pub use pos::Pos;
 pub use rank::{Rank, RANKS};
 

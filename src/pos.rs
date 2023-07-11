@@ -39,6 +39,20 @@ impl Pos {
 	}
 }
 
+impl TryFrom<&str> for Pos {
+	type Error = &'static str;
+
+	fn try_from(value: &str) -> Result<Self, Self::Error> {
+		if value.len() != 2 {
+			return Err("expected a string of length 2");
+		}
+		let mut iterator = value.chars();
+		let file = File::try_from(iterator.next().unwrap())?;
+		let rank = Rank::try_from(iterator.next().unwrap())?;
+		Ok(Pos::new(file, rank))
+	}
+}
+
 impl fmt::Display for Pos {
 	fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
 		write!(f, "{}{}", self.file(), self.rank())

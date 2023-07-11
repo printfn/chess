@@ -84,6 +84,24 @@ impl From<Rank> for &str {
 	}
 }
 
+impl TryFrom<char> for Rank {
+	type Error = &'static str;
+
+	fn try_from(value: char) -> Result<Self, Self::Error> {
+		Ok(match value {
+			'1' => Rank::One,
+			'2' => Rank::Two,
+			'3' => Rank::Three,
+			'4' => Rank::Four,
+			'5' => Rank::Five,
+			'6' => Rank::Six,
+			'7' => Rank::Seven,
+			'8' => Rank::Eight,
+			_ => return Err("invalid rank"),
+		})
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	extern crate alloc;
