@@ -1,10 +1,12 @@
 #![no_std]
 
+mod bitboard;
 mod file;
 mod piece;
 mod pos;
 mod rank;
 
+pub use bitboard::Bitboard;
 pub use file::{File, FILES};
 pub use piece::Piece;
 pub use pos::Pos;

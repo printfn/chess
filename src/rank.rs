@@ -86,14 +86,18 @@ impl From<Rank> for &str {
 
 #[cfg(test)]
 mod tests {
+	extern crate alloc;
 	use super::*;
+	use alloc::{format, string::ToString};
 
 	#[test]
 	fn to_string() {
 		for rank in RANKS {
-			let a = char::from(rank);
-			let b = <&str>::from(rank).chars().next().unwrap();
+			let a = char::from(rank).to_string();
+			let b = <&str>::from(rank);
+			let c = format!("{}", rank);
 			assert_eq!(a, b);
+			assert_eq!(a, c);
 		}
 	}
 }
