@@ -42,6 +42,22 @@ impl File {
 			_ => panic!("{value} is not a valid file (must be in 0..8)"),
 		}
 	}
+
+	pub fn next(self) -> Option<Self> {
+		if self == File::H {
+			None
+		} else {
+			Some(Self::from_value(self.value() + 1))
+		}
+	}
+
+	pub fn prev(self) -> Option<Self> {
+		if self == File::A {
+			None
+		} else {
+			Some(Self::from_value(self.value() - 1))
+		}
+	}
 }
 
 /// An array of all files in order.

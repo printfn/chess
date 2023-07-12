@@ -1,7 +1,7 @@
 use std::{env, fs, path};
 
 fn generate_bitboards() -> String {
-	let mut result = "pub const ORTHOGONAL_BITBOARDS: [u64; 64] = [\n".to_string();
+	let mut result = "pub const ROOK_MOVE_BITBOARDS: [u64; 64] = [\n".to_string();
 	for i in 0..64 {
 		let mut value = 0_u64;
 		for j in 0..64 {
@@ -13,7 +13,7 @@ fn generate_bitboards() -> String {
 	}
 	result.push_str("];\n");
 
-	result.push_str("pub const DIAGONAL_BITBOARDS: [u64; 64] = [\n");
+	result.push_str("pub const BISHOP_MOVE_BITBOARDS: [u64; 64] = [\n");
 	for i in 0..64 {
 		let mut value = 0_u64;
 		for j in 0..64 {

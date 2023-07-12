@@ -55,6 +55,22 @@ impl Rank {
 			_ => panic!("{value} is not a valid rank (must be in 0..8)"),
 		}
 	}
+
+	pub fn next(self) -> Option<Self> {
+		if self == Rank::Eight {
+			None
+		} else {
+			Some(Self::from_value(self.value() + 1))
+		}
+	}
+
+	pub fn prev(self) -> Option<Self> {
+		if self == Rank::One {
+			None
+		} else {
+			Some(Self::from_value(self.value() - 1))
+		}
+	}
 }
 
 impl fmt::Display for Rank {

@@ -1,5 +1,7 @@
 use core::{fmt, ops};
 
+use crate::Pos;
+
 pub struct Bitboard {
 	value: u64,
 }
@@ -20,19 +22,19 @@ impl Bitboard {
 		Self::new(u64::MAX)
 	}
 
-	/// Returns the bit value at the given index
-	pub fn get(&self, index: u8) -> bool {
-		self.value & (1 << index) != 0
+	/// Returns the bit value at the given position
+	pub fn get(&self, pos: Pos) -> bool {
+		self.value & (1 << pos.value()) != 0
 	}
 
-	/// Sets the bit at the given index
-	pub fn set(&mut self, index: u8) {
-		self.value |= 1 << index;
+	/// Sets the bit at the given position
+	pub fn set(&mut self, pos: Pos) {
+		self.value |= 1 << pos.value();
 	}
 
-	/// Unsets the bit at the given index
-	pub fn clear(&mut self, index: u8) {
-		self.value &= !(1 << index);
+	/// Unsets the bit at the given pos
+	pub fn clear(&mut self, pos: Pos) {
+		self.value &= !(1 << pos.value());
 	}
 
 	/// Returns the number of bits set in this bitboard
@@ -68,6 +70,38 @@ impl ops::Not for Bitboard {
 impl fmt::Display for Bitboard {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "{:08x}", self.value)
+	}
+}
+
+impl IntoIterator for Bitboard {
+	type Item = Pos;
+	type IntoIter = BitboardIterator;
+
+	fn into_iter(self) -> Self::IntoIter {
+		BitboardIterator {
+			bitboard: self,
+			index: 0,
+		}
+	}
+}
+
+pub struct BitboardIterator {
+	bitboard: Bitboard,
+	index: u8,
+}
+
+impl Iterator for BitboardIterator {
+	type Item = Pos;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		while self.index < 64 {
+			let index = self.index;
+			self.index += 1;
+			if self.bitboard.get(Pos::from_value(index)) {
+				return Some(Pos::from_value(index));
+			}
+		}
+		None
 	}
 }
 

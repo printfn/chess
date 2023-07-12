@@ -45,6 +45,35 @@ impl Pos {
 	pub fn knight_moves(self) -> Bitboard {
 		Bitboard::new(KNIGHT_BITBOARDS[self.value() as usize])
 	}
+
+	pub fn bishop_moves(self) -> Bitboard {
+		Bitboard::new(BISHOP_MOVE_BITBOARDS[self.value() as usize])
+	}
+
+	pub fn rook_moves(self) -> Bitboard {
+		Bitboard::new(ROOK_MOVE_BITBOARDS[self.value() as usize])
+	}
+
+	pub fn queen_moves(self) -> Bitboard {
+		self.bishop_moves() | self.rook_moves()
+	}
+
+	pub fn all_moves(self) -> Bitboard {
+		self.knight_moves() | self.bishop_moves() | self.rook_moves()
+	}
+
+	pub fn offset(self, direction: Direction) -> Option<Self> {
+		Some(match direction {
+			Direction::N => Self::new(self.file(), self.rank().next()?),
+			Direction::NE => Self::new(self.file().next()?, self.rank().next()?),
+			Direction::E => Self::new(self.file().next()?, self.rank()),
+			Direction::SE => Self::new(self.file().next()?, self.rank().prev()?),
+			Direction::S => Self::new(self.file(), self.rank().prev()?),
+			Direction::SW => Self::new(self.file().prev()?, self.rank().prev()?),
+			Direction::W => Self::new(self.file().prev()?, self.rank()),
+			Direction::NW => Self::new(self.file().prev()?, self.rank().next()?),
+		})
+	}
 }
 
 impl TryFrom<&str> for Pos {
