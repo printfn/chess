@@ -133,7 +133,7 @@ impl Board {
 		false
 	}
 
-	fn all_moves(&self, player: Player, en_passant_target: Option<Pos>, moves: &mut Vec<Move>) {
+	pub fn all_moves(&self, player: Player, en_passant_target: Option<Pos>, moves: &mut Vec<Move>) {
 		for (i, piece) in self.pieces.iter().enumerate() {
 			if let Some((p, original_piece)) = piece {
 				if *p == player {
@@ -177,6 +177,12 @@ impl ops::Index<Pos> for Board {
 
 	fn index(&self, pos: Pos) -> &Self::Output {
 		&self.pieces[pos.value() as usize]
+	}
+}
+
+impl ops::IndexMut<Pos> for Board {
+	fn index_mut(&mut self, index: Pos) -> &mut Self::Output {
+		&mut self.pieces[index.value() as usize]
 	}
 }
 
