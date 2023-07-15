@@ -1,14 +1,13 @@
 use std::io::Write;
 
-use chess_core::{Board, Player};
+use chess_core::Board;
 
 fn main() {
 	let mut board = Board::initial_position();
 	let mut moves = vec![];
-	let mut current_player = Player::White;
 	loop {
 		println!("{}", board);
-		board.all_moves(current_player, None, &mut moves);
+		board.all_moves(None, &mut moves);
 		println!("Count: {}", moves.len());
 		for (i, m) in moves.iter().enumerate() {
 			println!("{i:2}: {}", m.format(board));
@@ -27,7 +26,6 @@ fn main() {
 			}
 		};
 		board.apply_move(m);
-		current_player = !current_player;
 		moves.clear();
 	}
 }

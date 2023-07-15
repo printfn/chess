@@ -3,16 +3,16 @@ use core::{fmt, ops};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Board {
+	current_player: Player,
 	pieces: [Option<(Player, Piece)>; 64],
 }
 
 impl Board {
-	pub fn empty() -> Self {
-		Self { pieces: [None; 64] }
-	}
-
 	pub fn initial_position() -> Self {
-		let mut board = Self { pieces: [None; 64] };
+		let mut board = Self {
+			current_player: Player::White,
+			pieces: [None; 64],
+		};
 		for (i, piece) in HOME_ROW.iter().copied().enumerate() {
 			board.pieces[i * 8] = Some((Player::White, piece));
 			board.pieces[i * 8 + 1] = Some((Player::White, Piece::Pawn));
@@ -126,39 +126,38 @@ impl Board {
 		false
 	}
 
-	pub fn all_moves(&self, player: Player, en_passant_target: Option<Pos>, moves: &mut Vec<Move>) {
+	pub fn all_moves(&self, en_passant_target: Option<Pos>, moves: &mut Vec<Move>) {
 		for (i, piece) in self.pieces.iter().enumerate() {
-			if let Some((p, original_piece)) = piece {
-				if *p == player {
-					let pos = Pos::from_value(i as u8);
-					let targets = self.simple_piece_moves(pos, en_passant_target);
-					for target in targets {
-						let mut new_board = self.clone();
-						new_board.pieces[i] = None;
-						new_board.pieces[target.value() as usize] = Some((player, *original_piece));
-						if new_board.in_check(player) {
-							continue;
-						}
-						if *original_piece == Piece::Pawn
-							&& (target.rank() == Rank::Eight || target.rank() == Rank::One)
-						{
-							for promotion in
-								[Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight]
-							{
-								moves.push(Move {
-									from: pos,
-									to: target,
-									promotion: Some(promotion),
-								});
-							}
-						} else {
-							moves.push(Move {
-								from: pos,
-								to: target,
-								promotion: None,
-							});
-						}
+			let Some((p, original_piece)) = piece else { continue; };
+			if *p != self.current_player {
+				continue;
+			}
+			let pos = Pos::from_value(i as u8);
+			let targets = self.simple_piece_moves(pos, en_passant_target);
+			for target in targets {
+				let mut new_board = self.clone();
+				new_board.pieces[i] = None;
+				new_board.pieces[target.value() as usize] =
+					Some((self.current_player, *original_piece));
+				if new_board.in_check(self.current_player) {
+					continue;
+				}
+				if *original_piece == Piece::Pawn
+					&& (target.rank() == Rank::Eight || target.rank() == Rank::One)
+				{
+					for promotion in [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight] {
+						moves.push(Move {
+							from: pos,
+							to: target,
+							promotion: Some(promotion),
+						});
 					}
+				} else {
+					moves.push(Move {
+						from: pos,
+						to: target,
+						promotion: None,
+					});
 				}
 			}
 		}
@@ -168,6 +167,7 @@ impl Board {
 		let (player, piece) = self[mov.from].expect("no piece at from");
 		self[mov.from] = None;
 		self[mov.to] = Some((player, mov.promotion.unwrap_or(piece)));
+		self.current_player = !self.current_player;
 	}
 }
 
