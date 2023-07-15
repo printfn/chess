@@ -11,18 +11,7 @@ fn main() {
 		board.all_moves(current_player, None, &mut moves);
 		println!("Count: {}", moves.len());
 		for (i, m) in moves.iter().enumerate() {
-			let piece = board[m.from].expect("no piece at from");
-			let promotion = if let Some(p) = m.promotion {
-				format!(" (promotion: {:?})", p)
-			} else {
-				"".to_string()
-			};
-			println!(
-				"{i:2}: {}{}-{}{promotion}",
-				piece.1.notation(),
-				m.from,
-				m.to
-			);
+			println!("{i:2}: {}", m.format(board));
 		}
 		let m = loop {
 			print!("Enter move: ");
@@ -37,8 +26,7 @@ fn main() {
 				}
 			}
 		};
-		board[m.to] = board[m.from];
-		board[m.from] = None;
+		board.apply_move(m);
 		current_player = !current_player;
 		moves.clear();
 	}

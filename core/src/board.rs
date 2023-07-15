@@ -6,13 +6,6 @@ pub struct Board {
 	pieces: [Option<(Player, Piece)>; 64],
 }
 
-#[derive(Debug, Copy, Clone)]
-pub struct Move {
-	pub from: Pos,
-	pub to: Pos,
-	pub promotion: Option<Piece>,
-}
-
 impl Board {
 	pub fn empty() -> Self {
 		Self { pieces: [None; 64] }
@@ -169,6 +162,12 @@ impl Board {
 				}
 			}
 		}
+	}
+
+	pub fn apply_move(&mut self, mov: Move) {
+		let (player, piece) = self[mov.from].expect("no piece at from");
+		self[mov.from] = None;
+		self[mov.to] = Some((player, mov.promotion.unwrap_or(piece)));
 	}
 }
 
