@@ -234,11 +234,10 @@ impl Board {
 			&& !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::D, rank))
 			&& !self.square_in_check(Pos::new(File::C, rank))
-			&& !self.square_in_check(Pos::new(File::B, rank))
 		{
 			if add_move(Move {
 				from: Pos::new(File::E, rank),
-				to: Pos::new(File::G, rank),
+				to: Pos::new(File::C, rank),
 				promotion: None,
 			})
 			.is_break()
@@ -269,13 +268,13 @@ impl Board {
 		if piece == Piece::King {
 			if mov.from.file() == File::E && mov.to.file() == File::G {
 				let rook_pos = Pos::new(File::H, mov.from.rank());
-				let (player, piece) = self[rook_pos].expect("no rook at h1");
+				let (player, piece) = self[rook_pos].expect("no rook on h1");
 				assert!(player == self.current_player && piece == Piece::Rook);
 				self[rook_pos] = None;
 				self[Pos::new(File::F, mov.from.rank())] = Some((player, piece));
 			} else if mov.from.file() == File::E && mov.to.file() == File::C {
 				let rook_pos = Pos::new(File::A, mov.from.rank());
-				let (player, piece) = self[rook_pos].expect("no rook at a1");
+				let (player, piece) = self[rook_pos].expect("no rook on a1");
 				assert!(player == self.current_player && piece == Piece::Rook);
 				self[rook_pos] = None;
 				self[Pos::new(File::D, mov.from.rank())] = Some((player, piece));
@@ -371,6 +370,7 @@ mod tests {
 	extern crate alloc;
 	use super::*;
 	use alloc::string::ToString;
+	use rayon::prelude::*;
 
 	fn perft(board: Board, depth: usize) -> usize {
 		if depth == 0 {
@@ -384,18 +384,52 @@ mod tests {
 		if depth == 1 {
 			return moves.len();
 		}
-		let mut count = 0;
-		for mov in moves {
-			let mut board = board.clone();
-			board.apply_move(mov);
-			count += perft(board, depth - 1);
-		}
+		let count = moves
+			.par_iter()
+			.map(|mov| {
+				let mut board = board.clone();
+				board.apply_move(*mov);
+				perft(board, depth - 1)
+			})
+			.sum();
 		count
+	}
+
+	#[track_caller]
+	fn assert_move(mut board: Board, mov: &str) -> Board {
+		let mut moves = vec![];
+		board.all_moves(|m| {
+			moves.push(m);
+			ops::ControlFlow::Continue(())
+		});
+		for m in moves.iter() {
+			if m.format(board, &moves).to_string() == mov {
+				board.apply_move(*m);
+				return board;
+			}
+		}
+		panic!(
+			"move not found: {} (found moves {:?})",
+			mov,
+			moves
+				.iter()
+				.map(|m| m.format(board, &moves).to_string())
+				.reduce(|a, b| format!("{a}, {b}"))
+				.unwrap_or("".to_string())
+		);
+	}
+
+	#[track_caller]
+	fn assert_moves(board: Board, moves: &[&str]) {
+		let mut board = board;
+		for mov in moves {
+			board = assert_move(board, mov);
+		}
 	}
 
 	#[test]
 	fn initial_position() {
-		let board = &Board::initial_position();
+		let board = Board::initial_position();
 		assert_eq!(board["a1"], Some((Player::White, Piece::Rook)));
 		assert_eq!(board["a8"], Some((Player::Black, Piece::Rook)));
 		assert_eq!(board["e1"], Some((Player::White, Piece::King)));
@@ -423,10 +457,96 @@ mod tests {
 +---+---+---+---+---+---+---+---+\n",
 			"got: \n{actual}"
 		);
-		assert_eq!(perft(*board, 1), 20);
-		assert_eq!(perft(*board, 2), 400);
-		assert_eq!(perft(*board, 3), 8902);
-		assert_eq!(perft(*board, 4), 197_281);
-		assert_eq!(perft(*board, 5), 4_865_609);
+		assert_eq!(perft(board, 1), 20);
+		assert_eq!(perft(board, 2), 400);
+		assert_eq!(perft(board, 3), 8902);
+		assert_eq!(perft(board, 4), 197_281);
+		assert_eq!(perft(board, 5), 4_865_609);
+		assert_eq!(perft(board, 6), 119_060_324);
+		assert_eq!(perft(board, 7), 3_195_901_860);
+	}
+
+	#[test]
+	fn position_2() {
+		let mut board = Board {
+			current_player: Player::White,
+			black_kingside_castle: true,
+			black_queenside_castle: true,
+			en_passant_target: None,
+			white_kingside_castle: true,
+			white_queenside_castle: true,
+			pieces: [None; 64],
+		};
+		board.pieces[0] = Some((Player::White, Piece::Rook));
+		board.pieces[1] = Some((Player::White, Piece::Pawn));
+		board.pieces[5] = Some((Player::Black, Piece::Bishop));
+		board.pieces[6] = Some((Player::Black, Piece::Pawn));
+		board.pieces[7] = Some((Player::Black, Piece::Rook));
+
+		board.pieces[9] = Some((Player::White, Piece::Pawn));
+		board.pieces[11] = Some((Player::Black, Piece::Pawn));
+		board.pieces[13] = Some((Player::Black, Piece::Knight));
+
+		board.pieces[17] = Some((Player::White, Piece::Pawn));
+		board.pieces[18] = Some((Player::White, Piece::Knight));
+		board.pieces[22] = Some((Player::Black, Piece::Pawn));
+
+		board.pieces[25] = Some((Player::White, Piece::Bishop));
+		board.pieces[28] = Some((Player::White, Piece::Pawn));
+		board.pieces[30] = Some((Player::Black, Piece::Pawn));
+
+		board.pieces[32] = Some((Player::White, Piece::King));
+		board.pieces[33] = Some((Player::White, Piece::Bishop));
+		board.pieces[35] = Some((Player::White, Piece::Pawn));
+		board.pieces[36] = Some((Player::White, Piece::Knight));
+		board.pieces[37] = Some((Player::Black, Piece::Pawn));
+		board.pieces[38] = Some((Player::Black, Piece::Queen));
+		board.pieces[39] = Some((Player::Black, Piece::King));
+
+		board.pieces[41] = Some((Player::White, Piece::Pawn));
+		board.pieces[42] = Some((Player::White, Piece::Queen));
+		board.pieces[45] = Some((Player::Black, Piece::Knight));
+		board.pieces[46] = Some((Player::Black, Piece::Pawn));
+
+		board.pieces[49] = Some((Player::White, Piece::Pawn));
+		board.pieces[53] = Some((Player::Black, Piece::Pawn));
+		board.pieces[54] = Some((Player::Black, Piece::Bishop));
+
+		board.pieces[56] = Some((Player::White, Piece::Rook));
+		board.pieces[57] = Some((Player::White, Piece::Pawn));
+		board.pieces[58] = Some((Player::Black, Piece::Pawn));
+		board.pieces[63] = Some((Player::Black, Piece::Rook));
+
+		assert_eq!(
+			board.to_string(),
+			"+---+---+---+---+---+---+---+---+
+| r | . | . | . | k | . | . | r |
++---+---+---+---+---+---+---+---+
+| p | . | p | p | q | p | b | . |
++---+---+---+---+---+---+---+---+
+| b | n | . | . | p | n | p | . |
++---+---+---+---+---+---+---+---+
+| . | . | . | P | N | . | . | . |
++---+---+---+---+---+---+---+---+
+| . | p | . | . | P | . | . | . |
++---+---+---+---+---+---+---+---+
+| . | . | N | . | . | Q | . | p |
++---+---+---+---+---+---+---+---+
+| P | P | P | B | B | P | P | P |
++---+---+---+---+---+---+---+---+
+| R | . | . | . | K | . | . | R |
++---+---+---+---+---+---+---+---+\n",
+			"got: \n{board}"
+		);
+
+		assert_moves(board, &["a4", "bxa3 e.p."]);
+		assert_moves(board, &["Nxd7", "0-0-0"]);
+
+		assert_eq!(perft(board, 1), 48);
+		assert_eq!(perft(board, 2), 2039);
+		assert_eq!(perft(board, 3), 97_862);
+		assert_eq!(perft(board, 4), 4_085_603);
+		assert_eq!(perft(board, 5), 193_690_690);
+		assert_eq!(perft(board, 6), 8_031_647_685);
 	}
 }
