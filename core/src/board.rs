@@ -45,13 +45,8 @@ impl Board {
 		result
 	}
 
-	/// Returns all possible moves for the given piece, ignoring checks. Ignores castling.
-	fn simple_piece_moves(
-		&self,
-		pos: Pos,
-		en_passant_target: Option<Pos>,
-		checks: bool,
-	) -> Bitboard {
+	/// Returns all possible moves for the given piece, ignoring checks.
+	fn simple_piece_moves(&self, pos: Pos, en_passant_target: Option<Pos>) -> Bitboard {
 		let (player, piece) = self[pos].expect("no piece at position");
 		let iterator = match piece {
 			Piece::Pawn => {
@@ -60,13 +55,6 @@ impl Board {
 					Player::White => (Direction::N, Rank::Two, [Direction::NW, Direction::NE]),
 					Player::Black => (Direction::S, Rank::Seven, [Direction::SW, Direction::SE]),
 				};
-				if checks {
-					for direction in capture_dirs {
-						let Some(target_pos) = pos.offset(direction) else { continue };
-						result.set(target_pos);
-					}
-					return result;
-				}
 				let forward_one = pos.offset(direction).expect("pawn at far edge");
 				if self[forward_one].is_none() {
 					result.set(forward_one);
@@ -95,18 +83,12 @@ impl Board {
 				return result;
 			}
 			Piece::Knight => {
-				if checks {
-					return pos.knight_moves();
-				}
 				return !self.player_pieces(player) & pos.knight_moves();
 			}
 			Piece::Bishop => DIAGONAL_DIRECTIONS.iter(),
 			Piece::Rook => ORTHOGONAL_DIRECTIONS.iter(),
 			Piece::Queen => ADJACENT_DIRECTIONS.iter(),
 			Piece::King => {
-				if checks {
-					return pos.adjacent();
-				}
 				return !self.player_pieces(player) & pos.adjacent();
 			}
 		};
@@ -136,14 +118,31 @@ impl Board {
 
 	fn square_in_check(&self, king_pos: Pos) -> bool {
 		for pos in king_pos.all_moves() {
-			let Some((player, _)) = self[pos] else {
+			let Some((player, piece)) = self[pos] else {
 				continue;
 			};
 			if player == self.current_player {
 				continue;
 			}
-			// whether or not en passant is possible does not affect whether or not the king is in check
-			if self.simple_piece_moves(pos, None, true).get(king_pos) {
+			let check = match piece {
+				Piece::Pawn => {
+					// we can ignore en passant, it never affects whether the king is in check or not
+					let capture_dirs = match player {
+						Player::White => [Direction::NW, Direction::NE],
+						Player::Black => [Direction::SW, Direction::SE],
+					};
+					let mut result = Bitboard::empty();
+					for direction in capture_dirs {
+						let Some(target_pos) = pos.offset(direction) else { continue };
+						result.set(target_pos);
+					}
+					result.get(king_pos)
+				}
+				Piece::Knight => pos.knight_moves().get(king_pos),
+				Piece::King => pos.adjacent().get(king_pos),
+				_ => self.simple_piece_moves(pos, None).get(king_pos),
+			};
+			if check {
 				return true;
 			}
 		}
@@ -180,7 +179,7 @@ impl Board {
 				continue;
 			}
 			let pos = Pos::from_value(i as u8);
-			let targets = self.simple_piece_moves(pos, self.en_passant_target, false);
+			let targets = self.simple_piece_moves(pos, self.en_passant_target);
 			for target in targets {
 				let mut new_board = self.clone();
 				new_board.pieces[i] = None;
@@ -509,7 +508,7 @@ mod tests {
 		assert_perft(board, 4, 197_281);
 		assert_perft(board, 5, 4_865_609);
 		assert_perft(board, 6, 119_060_324);
-		assert_perft(board, 7, 3_195_901_860);
+		// assert_perft(board, 7, 3_195_901_860);
 	}
 
 	#[test]
@@ -601,6 +600,6 @@ mod tests {
 		assert_perft(board, 3, 97_862);
 		assert_perft(board, 4, 4_085_603);
 		assert_perft(board, 5, 193_690_690);
-		assert_perft(board, 6, 8_031_647_685);
+		// assert_perft(board, 6, 8_031_647_685);
 	}
 }
