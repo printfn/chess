@@ -46,7 +46,12 @@ impl Board {
 	}
 
 	/// Returns all possible moves for the given piece, ignoring checks. Ignores castling.
-	fn simple_piece_moves(&self, pos: Pos, en_passant_target: Option<Pos>) -> Bitboard {
+	fn simple_piece_moves(
+		&self,
+		pos: Pos,
+		en_passant_target: Option<Pos>,
+		checks: bool,
+	) -> Bitboard {
 		let (player, piece) = self[pos].expect("no piece at position");
 		let iterator = match piece {
 			Piece::Pawn => {
@@ -55,6 +60,13 @@ impl Board {
 					Player::White => (Direction::N, Rank::Two, [Direction::NW, Direction::NE]),
 					Player::Black => (Direction::S, Rank::Seven, [Direction::SW, Direction::SE]),
 				};
+				if checks {
+					for direction in capture_dirs {
+						let Some(target_pos) = pos.offset(direction) else { continue };
+						result.set(target_pos);
+					}
+					return result;
+				}
 				let forward_one = pos.offset(direction).expect("pawn at far edge");
 				if self[forward_one].is_none() {
 					result.set(forward_one);
@@ -82,11 +94,21 @@ impl Board {
 				}
 				return result;
 			}
-			Piece::Knight => return !self.player_pieces(player) & pos.knight_moves(),
+			Piece::Knight => {
+				if checks {
+					return pos.knight_moves();
+				}
+				return !self.player_pieces(player) & pos.knight_moves();
+			}
 			Piece::Bishop => DIAGONAL_DIRECTIONS.iter(),
 			Piece::Rook => ORTHOGONAL_DIRECTIONS.iter(),
 			Piece::Queen => ADJACENT_DIRECTIONS.iter(),
-			Piece::King => return !self.player_pieces(player) & pos.adjacent(),
+			Piece::King => {
+				if checks {
+					return pos.adjacent();
+				}
+				return !self.player_pieces(player) & pos.adjacent();
+			}
 		};
 		let mut result = Bitboard::empty();
 		for direction in iterator.copied() {
@@ -121,7 +143,7 @@ impl Board {
 				continue;
 			}
 			// whether or not en passant is possible does not affect whether or not the king is in check
-			if self.simple_piece_moves(pos, None).get(king_pos) {
+			if self.simple_piece_moves(pos, None, true).get(king_pos) {
 				return true;
 			}
 		}
@@ -158,7 +180,7 @@ impl Board {
 				continue;
 			}
 			let pos = Pos::from_value(i as u8);
-			let targets = self.simple_piece_moves(pos, self.en_passant_target);
+			let targets = self.simple_piece_moves(pos, self.en_passant_target, false);
 			for target in targets {
 				let mut new_board = self.clone();
 				new_board.pieces[i] = None;
@@ -213,6 +235,7 @@ impl Board {
 		if kingside_castle
 			&& self[Pos::new(File::F, rank)].is_none()
 			&& self[Pos::new(File::G, rank)].is_none()
+			&& self[Pos::new(File::H, rank)] == Some((self.current_player, Piece::Rook))
 			&& !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::F, rank))
 			&& !self.square_in_check(Pos::new(File::G, rank))
@@ -231,6 +254,7 @@ impl Board {
 			&& self[Pos::new(File::D, rank)].is_none()
 			&& self[Pos::new(File::C, rank)].is_none()
 			&& self[Pos::new(File::B, rank)].is_none()
+			&& self[Pos::new(File::A, rank)] == Some((self.current_player, Piece::Rook))
 			&& !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::D, rank))
 			&& !self.square_in_check(Pos::new(File::C, rank))
@@ -563,7 +587,14 @@ mod tests {
 
 		assert_moves(board, &["a4", "bxa3 e.p."]);
 		assert_moves(board, &["Nxd7", "0-0-0"]);
+
 		assert_perft(assert_moves(board, &["d6", "Bb5", "dxe7"]), 1, 38);
+		assert_perft(assert_moves(board, &["d6", "Bb5"]), 2, 2035);
+		assert_perft(assert_moves(board, &["d6"]), 3, 79551);
+
+		assert_perft(assert_moves(board, &["Nxf7", "Bb5", "Nxh8"]), 1, 41);
+		assert_perft(assert_moves(board, &["Nxf7", "Bb5"]), 2, 2084);
+		assert_perft(assert_moves(board, &["Nxf7"]), 3, 88799);
 
 		assert_perft(board, 1, 48);
 		assert_perft(board, 2, 2039);
