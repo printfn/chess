@@ -7,7 +7,7 @@ fn main() {
 	let mut moves = vec![];
 	loop {
 		println!("{}", board);
-		board.all_moves(None, &mut moves);
+		board.all_moves(&mut moves);
 		println!("Count: {}", moves.len());
 		for (i, m) in moves.iter().enumerate() {
 			println!("{i:2}: {}", m.format(board, &moves));

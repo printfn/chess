@@ -18,11 +18,25 @@ struct FormattedMove {
 	specify_file: bool,
 	kingside: bool,
 	queenside: bool,
+	en_passant: bool,
+	check_char: Option<char>,
 }
 
 impl Move {
 	pub fn format(self, board: Board, all_moves: &[Move]) -> impl fmt::Display + Send + Sync {
 		let (player, piece) = board[self.from].expect("no piece at from");
+
+		let check_char = {
+			let mut new_board: Board = board;
+			new_board.apply_move(self);
+			if new_board.in_check() {
+				let mut moves = Vec::new();
+				new_board.all_moves(&mut moves);
+				Some(if moves.is_empty() { '#' } else { '+' })
+			} else {
+				None
+			}
+		};
 
 		// find potentially ambiguous moves
 		let mut specify_something = false;
@@ -53,11 +67,13 @@ impl Move {
 		if specify_something && !specify_rank && !specify_file {
 			specify_file = true;
 		}
+		let en_passant =
+			piece == Piece::Pawn && self.from.file() != self.to.file() && board[self.to].is_none();
 		FormattedMove {
 			mov: self,
 			board,
 			piece,
-			capture: board[self.to].is_some(),
+			capture: board[self.to].is_some() || en_passant,
 			specify_file,
 			specify_rank,
 			kingside: piece == Piece::King
@@ -66,23 +82,14 @@ impl Move {
 			queenside: piece == Piece::King
 				&& self.from.file() == File::E
 				&& self.to.file() == File::C,
+			en_passant,
+			check_char,
 		}
 	}
 }
 
 impl fmt::Display for FormattedMove {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		let check_char = {
-			let mut new_board: Board = self.board;
-			new_board.apply_move(self.mov);
-			if new_board.in_check() {
-				let mut moves = Vec::new();
-				new_board.all_moves(None, &mut moves);
-				Some(if moves.is_empty() { '#' } else { '+' })
-			} else {
-				None
-			}
-		};
 		if self.kingside {
 			write!(f, "0-0")?;
 		} else if self.queenside {
@@ -96,12 +103,11 @@ impl fmt::Display for FormattedMove {
 				if self.specify_rank {
 					write!(f, "{}", self.mov.from.rank())?;
 				}
-			} else {
-				if self.capture {
-					write!(f, "{}", self.mov.from.file())?;
-				}
 			}
 			if self.capture {
+				if self.piece == Piece::Pawn {
+					write!(f, "{}", self.mov.from.file())?;
+				}
 				write!(f, "x")?;
 			}
 			write!(f, "{}", self.mov.to)?;
@@ -109,12 +115,12 @@ impl fmt::Display for FormattedMove {
 				write!(f, "={}", p.notation())?;
 			}
 		}
-		if let Some(ch) = check_char {
+		if let Some(ch) = self.check_char {
 			write!(f, "{}", ch)?;
 		}
-		// if self.piece == Piece::Pawn && self.capture {
-		// 	write!(f, " e.p.")?;
-		// }
+		if self.en_passant {
+			write!(f, " e.p.")?;
+		}
 		Ok(())
 	}
 }
