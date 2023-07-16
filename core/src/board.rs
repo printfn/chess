@@ -290,25 +290,6 @@ impl Board {
 			None
 		}
 	}
-
-	#[cfg(test)]
-	fn perft(&self, depth: usize) -> usize {
-		if depth == 0 {
-			return 1;
-		}
-		let mut moves = vec![];
-		self.all_moves(&mut moves);
-		if depth == 1 {
-			return moves.len();
-		}
-		let mut count = 0;
-		for mov in moves {
-			let mut board = self.clone();
-			board.apply_move(mov);
-			count += board.perft(depth - 1);
-		}
-		count
-	}
 }
 
 impl ops::Index<Pos> for Board {
@@ -357,6 +338,24 @@ mod tests {
 	use super::*;
 	use alloc::string::ToString;
 
+	fn perft(board: Board, depth: usize) -> usize {
+		if depth == 0 {
+			return 1;
+		}
+		let mut moves = vec![];
+		board.all_moves(&mut moves);
+		if depth == 1 {
+			return moves.len();
+		}
+		let mut count = 0;
+		for mov in moves {
+			let mut board = board.clone();
+			board.apply_move(mov);
+			count += perft(board, depth - 1);
+		}
+		count
+	}
+
 	#[test]
 	fn initial_position() {
 		let board = &Board::initial_position();
@@ -387,10 +386,10 @@ mod tests {
 +---+---+---+---+---+---+---+---+\n",
 			"got: \n{actual}"
 		);
-		assert_eq!(board.perft(1), 20);
-		assert_eq!(board.perft(2), 400);
-		assert_eq!(board.perft(3), 8902);
-		assert_eq!(board.perft(4), 197_281);
-		assert_eq!(board.perft(5), 4_865_609);
+		assert_eq!(perft(*board, 1), 20);
+		assert_eq!(perft(*board, 2), 400);
+		assert_eq!(perft(*board, 3), 8902);
+		assert_eq!(perft(*board, 4), 197_281);
+		assert_eq!(perft(*board, 5), 4_865_609);
 	}
 }
