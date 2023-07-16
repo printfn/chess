@@ -124,8 +124,8 @@ impl Board {
 		false
 	}
 
-	pub fn in_check(&self) -> bool {
-		let king_pos = Pos::from_value(
+	fn king_pos(&self) -> Pos {
+		Pos::from_value(
 			self.pieces
 				.into_iter()
 				.position(|piece| {
@@ -136,11 +136,16 @@ impl Board {
 					}
 				})
 				.expect("could not find king") as u8,
-		);
+		)
+	}
+
+	pub fn in_check(&self) -> bool {
+		let king_pos = self.king_pos();
 		self.square_in_check(king_pos)
 	}
 
 	pub fn all_moves(&self, mut add_move: impl FnMut(Move) -> ops::ControlFlow<()>) {
+		let king_pos = self.king_pos();
 		for (i, piece) in self.pieces.iter().enumerate() {
 			let Some((p, original_piece)) = piece else {
 				continue;
@@ -155,7 +160,11 @@ impl Board {
 				new_board.pieces[i] = None;
 				new_board.pieces[target.value() as usize] =
 					Some((self.current_player, *original_piece));
-				if new_board.in_check() {
+				if new_board.square_in_check(if *original_piece == Piece::King {
+					target
+				} else {
+					king_pos
+				}) {
 					continue;
 				}
 				if *original_piece == Piece::Pawn
