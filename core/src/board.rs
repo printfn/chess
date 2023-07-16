@@ -221,14 +221,19 @@ impl Board {
 		let (player, piece) = self[mov.from].expect("no piece at from");
 		self[mov.from] = None;
 		self[mov.to] = Some((player, mov.promotion.unwrap_or(piece)));
+		let back_dir = match player {
+			Player::White => Direction::S,
+			Player::Black => Direction::N,
+		};
 		if piece == Piece::Pawn && Some(mov.to) == self.en_passant_target {
-			let dir = match player {
-				Player::White => Direction::S,
-				Player::Black => Direction::N,
-			};
-			let capture_pos = mov.to.offset(dir).expect("invalid en passant move");
+			let capture_pos = mov.to.offset(back_dir).expect("invalid en passant move");
 			assert!(self[capture_pos] == Some((!player, Piece::Pawn)));
 			self[capture_pos] = None;
+		}
+		if piece == Piece::Pawn && mov.to.value().abs_diff(mov.from.value()) == 2 {
+			self.en_passant_target = Some(mov.to.offset(back_dir).expect("invalid pawn move"));
+		} else {
+			self.en_passant_target = None;
 		}
 		if piece == Piece::King {
 			if mov.from.file() == File::E && mov.to.file() == File::G {
@@ -284,6 +289,25 @@ impl Board {
 		} else {
 			None
 		}
+	}
+
+	#[cfg(test)]
+	fn perft(&self, depth: usize) -> usize {
+		if depth == 0 {
+			return 1;
+		}
+		let mut moves = vec![];
+		self.all_moves(&mut moves);
+		if depth == 1 {
+			return moves.len();
+		}
+		let mut count = 0;
+		for mov in moves {
+			let mut board = self.clone();
+			board.apply_move(mov);
+			count += board.perft(depth - 1);
+		}
+		count
 	}
 }
 
@@ -363,5 +387,10 @@ mod tests {
 +---+---+---+---+---+---+---+---+\n",
 			"got: \n{actual}"
 		);
+		assert_eq!(board.perft(1), 20);
+		assert_eq!(board.perft(2), 400);
+		assert_eq!(board.perft(3), 8902);
+		assert_eq!(board.perft(4), 197_281);
+		assert_eq!(board.perft(5), 4_865_609);
 	}
 }
