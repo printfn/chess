@@ -180,6 +180,25 @@ impl Board {
 			self[capture_pos] = None;
 		}
 	}
+
+	pub fn game_result(&self) -> Option<GameResult> {
+		let mut moves = vec![];
+		self.all_moves(&mut moves);
+		if moves.is_empty() {
+			Some(if self.in_check() {
+				GameResult::Win {
+					winner: !self.current_player,
+					win: WinReason::Checkmate,
+				}
+			} else {
+				GameResult::Draw {
+					draw: DrawReason::Stalemate,
+				}
+			})
+		} else {
+			None
+		}
+	}
 }
 
 impl ops::Index<Pos> for Board {

@@ -1,12 +1,15 @@
-use std::io::Write;
-
 use chess_core::Board;
+use std::io::Write;
 
 fn main() {
 	let mut board = Board::initial_position();
 	let mut moves = vec![];
 	loop {
 		println!("{}", board);
+		if let Some(game_result) = board.game_result() {
+			println!("Game over: {}", game_result);
+			break;
+		}
 		board.all_moves(&mut moves);
 		println!("Count: {}", moves.len());
 		for (i, m) in moves.iter().enumerate() {
