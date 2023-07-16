@@ -78,10 +78,12 @@ impl IntoIterator for Bitboard {
 	type IntoIter = BitboardIterator;
 
 	fn into_iter(self) -> Self::IntoIter {
+		let leading_zeroes = self.value.leading_zeros();
 		let trailing_zeroes = self.value.trailing_zeros();
 		BitboardIterator {
 			bitboard: self,
 			index: trailing_zeroes as u8,
+			end: (64 - leading_zeroes) as u8,
 		}
 	}
 }
@@ -89,13 +91,14 @@ impl IntoIterator for Bitboard {
 pub struct BitboardIterator {
 	bitboard: Bitboard,
 	index: u8,
+	end: u8,
 }
 
 impl Iterator for BitboardIterator {
 	type Item = Pos;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		while self.index < 64 {
+		while self.index < self.end {
 			let index = self.index;
 			self.index += 1;
 			if self.bitboard.get(Pos::from_value(index)) {
