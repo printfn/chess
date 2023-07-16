@@ -114,11 +114,15 @@ impl Board {
 
 	fn square_in_check(&self, king_pos: Pos) -> bool {
 		for pos in king_pos.all_moves() {
-			if let Some((p, _)) = self[pos] {
-				// whether or not en passant is possible does not affect whether or not the king is in check
-				if p != self.current_player && self.simple_piece_moves(pos, None).get(king_pos) {
-					return true;
-				}
+			let Some((player, _)) = self[pos] else {
+				continue;
+			};
+			if player == self.current_player {
+				continue;
+			}
+			// whether or not en passant is possible does not affect whether or not the king is in check
+			if self.simple_piece_moves(pos, None).get(king_pos) {
+				return true;
 			}
 		}
 		false
