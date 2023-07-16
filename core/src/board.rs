@@ -126,17 +126,11 @@ impl Board {
 			}
 			let check = match piece {
 				Piece::Pawn => {
-					// we can ignore en passant, it never affects whether the king is in check or not
-					let capture_dirs = match player {
-						Player::White => [Direction::NW, Direction::NE],
-						Player::Black => [Direction::SW, Direction::SE],
-					};
-					let mut result = Bitboard::empty();
-					for direction in capture_dirs {
-						let Some(target_pos) = pos.offset(direction) else { continue };
-						result.set(target_pos);
+					match player {
+						// we can ignore en passant, it never affects whether the king is in check or not
+						Player::White => pos.white_pawn_checks().get(king_pos),
+						Player::Black => pos.black_pawn_checks().get(king_pos),
 					}
-					result.get(king_pos)
 				}
 				Piece::Knight => pos.knight_moves().get(king_pos),
 				Piece::King => pos.adjacent().get(king_pos),

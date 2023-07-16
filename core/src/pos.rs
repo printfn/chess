@@ -62,6 +62,14 @@ impl Pos {
 		self.knight_moves() | self.bishop_moves() | self.rook_moves()
 	}
 
+	pub fn white_pawn_checks(self) -> Bitboard {
+		Bitboard::new(WHITE_PAWN_CHECK_BITBOARDS[self.value() as usize])
+	}
+
+	pub fn black_pawn_checks(self) -> Bitboard {
+		Bitboard::new(BLACK_PAWN_CHECK_BITBOARDS[self.value() as usize])
+	}
+
 	pub fn offset(self, direction: Direction) -> Option<Self> {
 		Some(match direction {
 			Direction::N => Self::new(self.file(), self.rank().next()?),

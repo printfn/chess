@@ -99,6 +99,32 @@ fn generate_bitboards() -> String {
 		result.push_str(&format!("\t0x{value:016x},\n"));
 	}
 	result.push_str("];\n");
+
+	result.push_str("pub const WHITE_PAWN_CHECK_BITBOARDS: [u64; 64] = [\n");
+	for i in 0..64 {
+		let mut value = 0_u64;
+		if i > 8 && i % 8 != 0 && i % 8 != 7 {
+			value |= 1 << (i - 7);
+		}
+		if i < 56 && i % 8 != 0 && i % 8 != 7 {
+			value |= 1 << (i + 9);
+		}
+		result.push_str(&format!("\t0x{value:016x},\n"));
+	}
+	result.push_str("];\n");
+
+	result.push_str("pub const BLACK_PAWN_CHECK_BITBOARDS: [u64; 64] = [\n");
+	for i in 0..64 {
+		let mut value = 0_u64;
+		if i > 8 && i % 8 != 0 && i % 8 != 7 {
+			value |= 1 << (i - 9);
+		}
+		if i < 56 && i % 8 != 0 && i % 8 != 7 {
+			value |= 1 << (i + 7);
+		}
+		result.push_str(&format!("\t0x{value:016x},\n"));
+	}
+	result.push_str("];\n");
 	result
 }
 
