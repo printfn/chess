@@ -420,11 +420,33 @@ mod tests {
 	}
 
 	#[track_caller]
-	fn assert_moves(board: Board, moves: &[&str]) {
+	fn assert_moves(board: Board, moves: &[&str]) -> Board {
 		let mut board = board;
 		for mov in moves {
 			board = assert_move(board, mov);
 		}
+		board
+	}
+
+	#[track_caller]
+	fn assert_perft(board: Board, depth: usize, count: usize) {
+		let actual = perft(board, depth);
+		if actual == count {
+			return;
+		}
+		// try to find the move that caused the failure
+		let mut moves = vec![];
+		board.all_moves(|m| {
+			moves.push(m);
+			ops::ControlFlow::Continue(())
+		});
+		for mov in moves.iter() {
+			let mut new_board = board.clone();
+			new_board.apply_move(*mov);
+			let subcount = perft(new_board, depth - 1);
+			eprintln!("{}{}: {}", mov.from, mov.to, subcount);
+		}
+		assert_eq!(actual, count, "perft failed at depth {depth}");
 	}
 
 	#[test]
@@ -457,13 +479,13 @@ mod tests {
 +---+---+---+---+---+---+---+---+\n",
 			"got: \n{actual}"
 		);
-		assert_eq!(perft(board, 1), 20);
-		assert_eq!(perft(board, 2), 400);
-		assert_eq!(perft(board, 3), 8902);
-		assert_eq!(perft(board, 4), 197_281);
-		assert_eq!(perft(board, 5), 4_865_609);
-		assert_eq!(perft(board, 6), 119_060_324);
-		assert_eq!(perft(board, 7), 3_195_901_860);
+		assert_perft(board, 1, 20);
+		assert_perft(board, 2, 400);
+		assert_perft(board, 3, 8902);
+		assert_perft(board, 4, 197_281);
+		assert_perft(board, 5, 4_865_609);
+		assert_perft(board, 6, 119_060_324);
+		assert_perft(board, 7, 3_195_901_860);
 	}
 
 	#[test]
@@ -541,12 +563,13 @@ mod tests {
 
 		assert_moves(board, &["a4", "bxa3 e.p."]);
 		assert_moves(board, &["Nxd7", "0-0-0"]);
+		assert_perft(assert_moves(board, &["d6", "Bb5", "dxe7"]), 1, 38);
 
-		assert_eq!(perft(board, 1), 48);
-		assert_eq!(perft(board, 2), 2039);
-		assert_eq!(perft(board, 3), 97_862);
-		assert_eq!(perft(board, 4), 4_085_603);
-		assert_eq!(perft(board, 5), 193_690_690);
-		assert_eq!(perft(board, 6), 8_031_647_685);
+		assert_perft(board, 1, 48);
+		assert_perft(board, 2, 2039);
+		assert_perft(board, 3, 97_862);
+		assert_perft(board, 4, 4_085_603);
+		assert_perft(board, 5, 193_690_690);
+		assert_perft(board, 6, 8_031_647_685);
 	}
 }
