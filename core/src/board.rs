@@ -395,6 +395,29 @@ mod tests {
 	use alloc::string::ToString;
 	use rayon::prelude::*;
 
+	fn single_thread_perft(board: Board, depth: usize) -> usize {
+		if depth == 0 {
+			return 1;
+		}
+		let mut moves = vec![];
+		board.all_moves(|m| {
+			moves.push(m);
+			ops::ControlFlow::Continue(())
+		});
+		if depth == 1 {
+			return moves.len();
+		}
+		let count = moves
+			.iter()
+			.map(|mov| {
+				let mut board = board.clone();
+				board.apply_move(*mov);
+				single_thread_perft(board, depth - 1)
+			})
+			.sum();
+		count
+	}
+
 	fn perft(board: Board, depth: usize) -> usize {
 		if depth == 0 {
 			return 1;
@@ -601,5 +624,10 @@ mod tests {
 		assert_perft(board, 4, 4_085_603);
 		assert_perft(board, 5, 193_690_690);
 		// assert_perft(board, 6, 8_031_647_685);
+	}
+
+	#[test]
+	fn benchmark() {
+		single_thread_perft(Board::initial_position(), 5);
 	}
 }
