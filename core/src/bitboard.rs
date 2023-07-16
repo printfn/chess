@@ -78,9 +78,10 @@ impl IntoIterator for Bitboard {
 	type IntoIter = BitboardIterator;
 
 	fn into_iter(self) -> Self::IntoIter {
+		let trailing_zeroes = self.value.trailing_zeros();
 		BitboardIterator {
 			bitboard: self,
-			index: 0,
+			index: trailing_zeroes as u8,
 		}
 	}
 }
@@ -116,6 +117,14 @@ mod tests {
 		assert_eq!(
 			format!("{}", Bitboard::new(0x1234567890abcdef)),
 			"1234567890abcdef"
+		);
+	}
+
+	#[test]
+	fn iterator() {
+		assert_eq!(
+			Bitboard::new(1).into_iter().collect::<Vec<_>>(),
+			vec![Pos::from_value(0)]
 		);
 	}
 }

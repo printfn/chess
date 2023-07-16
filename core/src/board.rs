@@ -525,7 +525,7 @@ mod tests {
 		assert_perft(board, 4, 197_281);
 		assert_perft(board, 5, 4_865_609);
 		assert_perft(board, 6, 119_060_324);
-		// assert_perft(board, 7, 3_195_901_860);
+		assert_perft(board, 7, 3_195_901_860);
 	}
 
 	#[test]
@@ -617,7 +617,7 @@ mod tests {
 		assert_perft(board, 3, 97_862);
 		assert_perft(board, 4, 4_085_603);
 		assert_perft(board, 5, 193_690_690);
-		// assert_perft(board, 6, 8_031_647_685);
+		assert_perft(board, 6, 8_031_647_685);
 	}
 
 	#[test]
