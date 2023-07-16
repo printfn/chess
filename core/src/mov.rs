@@ -12,7 +12,6 @@ pub struct Move {
 struct FormattedMove {
 	mov: Move,
 	piece: Piece,
-	board: Board,
 	capture: bool,
 	specify_rank: bool,
 	specify_file: bool,
@@ -71,7 +70,6 @@ impl Move {
 			piece == Piece::Pawn && self.from.file() != self.to.file() && board[self.to].is_none();
 		FormattedMove {
 			mov: self,
-			board,
 			piece,
 			capture: board[self.to].is_some() || en_passant,
 			specify_file,
