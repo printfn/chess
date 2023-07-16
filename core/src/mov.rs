@@ -19,14 +19,15 @@ struct FormattedMove {
 	kingside: bool,
 	queenside: bool,
 	en_passant: bool,
-	check_char: Option<char>,
+	check: bool,
+	checkmate: bool,
 }
 
 impl Move {
 	pub fn format(self, board: Board, all_moves: &[Move]) -> impl fmt::Display + Send + Sync {
 		let (player, piece) = board[self.from].expect("no piece at from");
 
-		let check_char = {
+		let (check, checkmate) = {
 			let mut new_board: Board = board;
 			new_board.apply_move(self);
 			if new_board.in_check() {
@@ -35,9 +36,9 @@ impl Move {
 					any_moves = true;
 					ops::ControlFlow::Break(())
 				});
-				Some(if any_moves { '+' } else { '#' })
+				(true, !any_moves)
 			} else {
-				None
+				(false, false)
 			}
 		};
 
@@ -70,6 +71,7 @@ impl Move {
 		if specify_something && !specify_rank && !specify_file {
 			specify_file = true;
 		}
+
 		let en_passant =
 			piece == Piece::Pawn && self.from.file() != self.to.file() && board[self.to].is_none();
 		FormattedMove {
@@ -85,7 +87,8 @@ impl Move {
 				&& self.from.file() == File::E
 				&& self.to.file() == File::C,
 			en_passant,
-			check_char,
+			check,
+			checkmate,
 		}
 	}
 }
@@ -117,8 +120,10 @@ impl fmt::Display for FormattedMove {
 				write!(f, "={}", p.notation())?;
 			}
 		}
-		if let Some(ch) = self.check_char {
-			write!(f, "{}", ch)?;
+		if self.checkmate {
+			write!(f, "#")?;
+		} else if self.check {
+			write!(f, "+")?;
 		}
 		if self.en_passant {
 			write!(f, " e.p.")?;
