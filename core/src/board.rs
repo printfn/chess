@@ -102,13 +102,13 @@ impl Board {
 		result
 	}
 
-	fn in_check(&self, player: Player) -> bool {
+	pub fn in_check(&self) -> bool {
 		let king_pos = Pos::from_value(
 			self.pieces
 				.into_iter()
 				.position(|piece| {
 					if let Some((p, piece)) = piece {
-						p == player && piece == Piece::King
+						p == self.current_player && piece == Piece::King
 					} else {
 						false
 					}
@@ -118,7 +118,7 @@ impl Board {
 		for pos in king_pos.all_moves() {
 			if let Some((p, _)) = self[pos] {
 				// whether or not en passant is possible does not affect whether or not the king is in check
-				if p != player && self.simple_piece_moves(pos, None).get(king_pos) {
+				if p != self.current_player && self.simple_piece_moves(pos, None).get(king_pos) {
 					return true;
 				}
 			}
@@ -139,7 +139,7 @@ impl Board {
 				new_board.pieces[i] = None;
 				new_board.pieces[target.value() as usize] =
 					Some((self.current_player, *original_piece));
-				if new_board.in_check(self.current_player) {
+				if new_board.in_check() {
 					continue;
 				}
 				if *original_piece == Piece::Pawn

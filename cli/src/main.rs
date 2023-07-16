@@ -10,7 +10,7 @@ fn main() {
 		board.all_moves(None, &mut moves);
 		println!("Count: {}", moves.len());
 		for (i, m) in moves.iter().enumerate() {
-			println!("{i:2}: {}", m.format(board));
+			println!("{i:2}: {}", m.format(board, &moves));
 		}
 		let m = loop {
 			print!("Enter move: ");
