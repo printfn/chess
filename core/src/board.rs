@@ -140,9 +140,11 @@ impl Board {
 		self.square_in_check(king_pos)
 	}
 
-	pub fn all_moves(&self, moves: &mut Vec<Move>) {
+	pub fn all_moves(&self, mut add_move: impl FnMut(Move) -> ops::ControlFlow<()>) {
 		for (i, piece) in self.pieces.iter().enumerate() {
-			let Some((p, original_piece)) = piece else { continue; };
+			let Some((p, original_piece)) = piece else {
+				continue;
+			};
 			if *p != self.current_player {
 				continue;
 			}
@@ -160,18 +162,26 @@ impl Board {
 					&& (target.rank() == Rank::Eight || target.rank() == Rank::One)
 				{
 					for promotion in [Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight] {
-						moves.push(Move {
+						if add_move(Move {
 							from: pos,
 							to: target,
 							promotion: Some(promotion),
-						});
+						})
+						.is_break()
+						{
+							return;
+						}
 					}
 				} else {
-					moves.push(Move {
+					if add_move(Move {
 						from: pos,
 						to: target,
 						promotion: None,
-					});
+					})
+					.is_break()
+					{
+						return;
+					};
 				}
 			}
 		}
@@ -194,11 +204,15 @@ impl Board {
 			&& !self.square_in_check(Pos::new(File::F, rank))
 			&& !self.square_in_check(Pos::new(File::G, rank))
 		{
-			moves.push(Move {
+			if add_move(Move {
 				from: Pos::new(File::E, rank),
 				to: Pos::new(File::G, rank),
 				promotion: None,
-			});
+			})
+			.is_break()
+			{
+				return;
+			};
 		}
 		if queenside_castle
 			&& self[Pos::new(File::D, rank)].is_none()
@@ -209,11 +223,15 @@ impl Board {
 			&& !self.square_in_check(Pos::new(File::C, rank))
 			&& !self.square_in_check(Pos::new(File::B, rank))
 		{
-			moves.push(Move {
+			if add_move(Move {
 				from: Pos::new(File::E, rank),
 				to: Pos::new(File::G, rank),
 				promotion: None,
-			});
+			})
+			.is_break()
+			{
+				return;
+			};
 		}
 	}
 
@@ -273,9 +291,14 @@ impl Board {
 	}
 
 	pub fn game_result(&self) -> Option<GameResult> {
-		let mut moves = vec![];
-		self.all_moves(&mut moves);
-		if moves.is_empty() {
+		let mut any_moves = false;
+		self.all_moves(|_| {
+			any_moves = true;
+			ops::ControlFlow::Break(())
+		});
+		if any_moves {
+			None
+		} else {
 			Some(if self.in_check() {
 				GameResult::Win {
 					winner: !self.current_player,
@@ -286,8 +309,6 @@ impl Board {
 					draw: DrawReason::Stalemate,
 				}
 			})
-		} else {
-			None
 		}
 	}
 }
@@ -343,7 +364,10 @@ mod tests {
 			return 1;
 		}
 		let mut moves = vec![];
-		board.all_moves(&mut moves);
+		board.all_moves(|m| {
+			moves.push(m);
+			ops::ControlFlow::Continue(())
+		});
 		if depth == 1 {
 			return moves.len();
 		}

@@ -1,4 +1,5 @@
 use core::fmt;
+use std::ops;
 
 use crate::{Board, File, Piece, Pos};
 
@@ -29,9 +30,12 @@ impl Move {
 			let mut new_board: Board = board;
 			new_board.apply_move(self);
 			if new_board.in_check() {
-				let mut moves = Vec::new();
-				new_board.all_moves(&mut moves);
-				Some(if moves.is_empty() { '#' } else { '+' })
+				let mut any_moves = false;
+				new_board.all_moves(|_| {
+					any_moves = true;
+					ops::ControlFlow::Break(())
+				});
+				Some(if any_moves { '+' } else { '#' })
 			} else {
 				None
 			}
