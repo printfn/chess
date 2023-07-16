@@ -6,6 +6,10 @@ pub struct Board {
 	current_player: Player,
 	en_passant_target: Option<Pos>,
 	pieces: [Option<(Player, Piece)>; 64],
+	white_kingside_castle: bool,
+	white_queenside_castle: bool,
+	black_kingside_castle: bool,
+	black_queenside_castle: bool,
 }
 
 impl Board {
@@ -14,6 +18,10 @@ impl Board {
 			current_player: Player::White,
 			en_passant_target: None,
 			pieces: [None; 64],
+			white_kingside_castle: true,
+			white_queenside_castle: true,
+			black_kingside_castle: true,
+			black_queenside_castle: true,
 		};
 		for (i, piece) in HOME_ROW.iter().copied().enumerate() {
 			board.pieces[i * 8] = Some((Player::White, piece));
@@ -104,6 +112,18 @@ impl Board {
 		result
 	}
 
+	fn square_in_check(&self, king_pos: Pos) -> bool {
+		for pos in king_pos.all_moves() {
+			if let Some((p, _)) = self[pos] {
+				// whether or not en passant is possible does not affect whether or not the king is in check
+				if p != self.current_player && self.simple_piece_moves(pos, None).get(king_pos) {
+					return true;
+				}
+			}
+		}
+		false
+	}
+
 	pub fn in_check(&self) -> bool {
 		let king_pos = Pos::from_value(
 			self.pieces
@@ -117,15 +137,7 @@ impl Board {
 				})
 				.expect("could not find king") as u8,
 		);
-		for pos in king_pos.all_moves() {
-			if let Some((p, _)) = self[pos] {
-				// whether or not en passant is possible does not affect whether or not the king is in check
-				if p != self.current_player && self.simple_piece_moves(pos, None).get(king_pos) {
-					return true;
-				}
-			}
-		}
-		false
+		self.square_in_check(king_pos)
 	}
 
 	pub fn all_moves(&self, moves: &mut Vec<Move>) {
@@ -163,13 +175,52 @@ impl Board {
 				}
 			}
 		}
+		let (kingside_castle, queenside_castle, rank) = match self.current_player {
+			Player::White => (
+				self.white_kingside_castle,
+				self.white_queenside_castle,
+				Rank::One,
+			),
+			Player::Black => (
+				self.black_kingside_castle,
+				self.black_queenside_castle,
+				Rank::Eight,
+			),
+		};
+		if kingside_castle
+			&& self[Pos::new(File::F, rank)].is_none()
+			&& self[Pos::new(File::G, rank)].is_none()
+			&& !self.square_in_check(Pos::new(File::E, rank))
+			&& !self.square_in_check(Pos::new(File::F, rank))
+			&& !self.square_in_check(Pos::new(File::G, rank))
+		{
+			moves.push(Move {
+				from: Pos::new(File::E, rank),
+				to: Pos::new(File::G, rank),
+				promotion: None,
+			});
+		}
+		if queenside_castle
+			&& self[Pos::new(File::D, rank)].is_none()
+			&& self[Pos::new(File::C, rank)].is_none()
+			&& self[Pos::new(File::B, rank)].is_none()
+			&& !self.square_in_check(Pos::new(File::E, rank))
+			&& !self.square_in_check(Pos::new(File::D, rank))
+			&& !self.square_in_check(Pos::new(File::C, rank))
+			&& !self.square_in_check(Pos::new(File::B, rank))
+		{
+			moves.push(Move {
+				from: Pos::new(File::E, rank),
+				to: Pos::new(File::G, rank),
+				promotion: None,
+			});
+		}
 	}
 
 	pub fn apply_move(&mut self, mov: Move) {
 		let (player, piece) = self[mov.from].expect("no piece at from");
 		self[mov.from] = None;
 		self[mov.to] = Some((player, mov.promotion.unwrap_or(piece)));
-		self.current_player = !self.current_player;
 		if piece == Piece::Pawn && Some(mov.to) == self.en_passant_target {
 			let dir = match player {
 				Player::White => Direction::S,
@@ -178,6 +229,41 @@ impl Board {
 			let capture_pos = mov.to.offset(dir).expect("invalid en passant move");
 			assert!(self[capture_pos] == Some((!player, Piece::Pawn)));
 			self[capture_pos] = None;
+		}
+		if piece == Piece::King {
+			if mov.from.file() == File::E && mov.to.file() == File::G {
+				let rook_pos = Pos::new(File::H, mov.from.rank());
+				let (player, piece) = self[rook_pos].expect("no rook at h1");
+				assert!(player == self.current_player && piece == Piece::Rook);
+				self[rook_pos] = None;
+				self[Pos::new(File::F, mov.from.rank())] = Some((player, piece));
+			} else if mov.from.file() == File::E && mov.to.file() == File::C {
+				let rook_pos = Pos::new(File::A, mov.from.rank());
+				let (player, piece) = self[rook_pos].expect("no rook at a1");
+				assert!(player == self.current_player && piece == Piece::Rook);
+				self[rook_pos] = None;
+				self[Pos::new(File::D, mov.from.rank())] = Some((player, piece));
+			}
+		}
+		self.current_player = !self.current_player;
+		if (player, piece) == (Player::White, Piece::King) {
+			self.white_kingside_castle = false;
+			self.white_queenside_castle = false;
+		} else if (player, piece) == (Player::Black, Piece::King) {
+			self.black_kingside_castle = false;
+			self.black_queenside_castle = false;
+		} else if (player, piece) == (Player::White, Piece::Rook) {
+			if mov.from == Pos::new(File::A, Rank::One) {
+				self.white_queenside_castle = false;
+			} else if mov.from == Pos::new(File::H, Rank::One) {
+				self.white_kingside_castle = false;
+			}
+		} else if (player, piece) == (Player::Black, Piece::Rook) {
+			if mov.from == Pos::new(File::A, Rank::Eight) {
+				self.black_queenside_castle = false;
+			} else if mov.from == Pos::new(File::H, Rank::Eight) {
+				self.black_kingside_castle = false;
+			}
 		}
 	}
 
