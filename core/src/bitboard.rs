@@ -2,6 +2,7 @@ use core::{fmt, ops};
 
 use crate::Pos;
 
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct Bitboard {
 	value: u64,
 }
@@ -43,6 +44,12 @@ impl Bitboard {
 	}
 }
 
+impl fmt::Debug for Bitboard {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{:016x}", self.value)
+	}
+}
+
 impl ops::BitOr for Bitboard {
 	type Output = Self;
 
@@ -69,7 +76,7 @@ impl ops::Not for Bitboard {
 
 impl fmt::Display for Bitboard {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "{:08x}", self.value)
+		write!(f, "{:016x}", self.value)
 	}
 }
 
