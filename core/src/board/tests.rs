@@ -106,11 +106,26 @@ fn assert_perft(board: Board, depth: usize, count: usize) {
 #[test]
 fn initial_position() {
 	let board = Board::initial_position();
-	assert_eq!(board["a1"], Some((Player::White, Piece::Rook)));
-	assert_eq!(board["a8"], Some((Player::Black, Piece::Rook)));
-	assert_eq!(board["e1"], Some((Player::White, Piece::King)));
-	assert_eq!(board["h1"], Some((Player::White, Piece::Rook)));
-	assert_eq!(board["h8"], Some((Player::Black, Piece::Rook)));
+	assert_eq!(
+		board.getp(Pos::try_from("a1").unwrap()),
+		Some((Player::White, Piece::Rook))
+	);
+	assert_eq!(
+		board.getp(Pos::try_from("a8").unwrap()),
+		Some((Player::Black, Piece::Rook))
+	);
+	assert_eq!(
+		board.getp(Pos::try_from("e1").unwrap()),
+		Some((Player::White, Piece::King))
+	);
+	assert_eq!(
+		board.getp(Pos::try_from("h1").unwrap()),
+		Some((Player::White, Piece::Rook))
+	);
+	assert_eq!(
+		board.getp(Pos::try_from("h8").unwrap()),
+		Some((Player::Black, Piece::Rook))
+	);
 	let actual = board.to_string();
 	assert_eq!(
 		actual,
@@ -144,54 +159,46 @@ fn initial_position() {
 
 #[test]
 fn position_2() {
-	let mut board = Board {
-		current_player: Player::White,
-		black_kingside_castle: true,
-		black_queenside_castle: true,
-		en_passant_target: None,
-		white_kingside_castle: true,
-		white_queenside_castle: true,
-		pieces: [None; 64],
-	};
-	board.pieces[0] = Some((Player::White, Piece::Rook));
-	board.pieces[1] = Some((Player::White, Piece::Pawn));
-	board.pieces[5] = Some((Player::Black, Piece::Bishop));
-	board.pieces[6] = Some((Player::Black, Piece::Pawn));
-	board.pieces[7] = Some((Player::Black, Piece::Rook));
+	let mut board = Board::empty();
+	board.set(0, Some((Player::White, Piece::Rook)));
+	board.set(1, Some((Player::White, Piece::Pawn)));
+	board.set(5, Some((Player::Black, Piece::Bishop)));
+	board.set(6, Some((Player::Black, Piece::Pawn)));
+	board.set(7, Some((Player::Black, Piece::Rook)));
 
-	board.pieces[9] = Some((Player::White, Piece::Pawn));
-	board.pieces[11] = Some((Player::Black, Piece::Pawn));
-	board.pieces[13] = Some((Player::Black, Piece::Knight));
+	board.set(9, Some((Player::White, Piece::Pawn)));
+	board.set(11, Some((Player::Black, Piece::Pawn)));
+	board.set(13, Some((Player::Black, Piece::Knight)));
 
-	board.pieces[17] = Some((Player::White, Piece::Pawn));
-	board.pieces[18] = Some((Player::White, Piece::Knight));
-	board.pieces[22] = Some((Player::Black, Piece::Pawn));
+	board.set(17, Some((Player::White, Piece::Pawn)));
+	board.set(18, Some((Player::White, Piece::Knight)));
+	board.set(22, Some((Player::Black, Piece::Pawn)));
 
-	board.pieces[25] = Some((Player::White, Piece::Bishop));
-	board.pieces[28] = Some((Player::White, Piece::Pawn));
-	board.pieces[30] = Some((Player::Black, Piece::Pawn));
+	board.set(25, Some((Player::White, Piece::Bishop)));
+	board.set(28, Some((Player::White, Piece::Pawn)));
+	board.set(30, Some((Player::Black, Piece::Pawn)));
 
-	board.pieces[32] = Some((Player::White, Piece::King));
-	board.pieces[33] = Some((Player::White, Piece::Bishop));
-	board.pieces[35] = Some((Player::White, Piece::Pawn));
-	board.pieces[36] = Some((Player::White, Piece::Knight));
-	board.pieces[37] = Some((Player::Black, Piece::Pawn));
-	board.pieces[38] = Some((Player::Black, Piece::Queen));
-	board.pieces[39] = Some((Player::Black, Piece::King));
+	board.set(32, Some((Player::White, Piece::King)));
+	board.set(33, Some((Player::White, Piece::Bishop)));
+	board.set(35, Some((Player::White, Piece::Pawn)));
+	board.set(36, Some((Player::White, Piece::Knight)));
+	board.set(37, Some((Player::Black, Piece::Pawn)));
+	board.set(38, Some((Player::Black, Piece::Queen)));
+	board.set(39, Some((Player::Black, Piece::King)));
 
-	board.pieces[41] = Some((Player::White, Piece::Pawn));
-	board.pieces[42] = Some((Player::White, Piece::Queen));
-	board.pieces[45] = Some((Player::Black, Piece::Knight));
-	board.pieces[46] = Some((Player::Black, Piece::Pawn));
+	board.set(41, Some((Player::White, Piece::Pawn)));
+	board.set(42, Some((Player::White, Piece::Queen)));
+	board.set(45, Some((Player::Black, Piece::Knight)));
+	board.set(46, Some((Player::Black, Piece::Pawn)));
 
-	board.pieces[49] = Some((Player::White, Piece::Pawn));
-	board.pieces[53] = Some((Player::Black, Piece::Pawn));
-	board.pieces[54] = Some((Player::Black, Piece::Bishop));
+	board.set(49, Some((Player::White, Piece::Pawn)));
+	board.set(53, Some((Player::Black, Piece::Pawn)));
+	board.set(54, Some((Player::Black, Piece::Bishop)));
 
-	board.pieces[56] = Some((Player::White, Piece::Rook));
-	board.pieces[57] = Some((Player::White, Piece::Pawn));
-	board.pieces[58] = Some((Player::Black, Piece::Pawn));
-	board.pieces[63] = Some((Player::Black, Piece::Rook));
+	board.set(56, Some((Player::White, Piece::Rook)));
+	board.set(57, Some((Player::White, Piece::Pawn)));
+	board.set(58, Some((Player::Black, Piece::Pawn)));
+	board.set(63, Some((Player::Black, Piece::Rook)));
 
 	assert_eq!(
 		board.to_string(),

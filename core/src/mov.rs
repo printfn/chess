@@ -25,7 +25,7 @@ struct FormattedMove {
 
 impl Move {
 	pub fn format(self, board: Board, all_moves: &[Move]) -> impl fmt::Display + Send + Sync {
-		let (player, piece) = board[self.from].expect("no piece at from");
+		let (player, piece) = board.getp(self.from).expect("no piece at from");
 
 		let (check, checkmate) = {
 			let mut new_board: Board = board;
@@ -51,7 +51,7 @@ impl Move {
 				// same origin square, cannot be ambiguous
 				continue;
 			}
-			if (player, piece) != board[mov.from].expect("no piece at from") {
+			if (player, piece) != board.getp(mov.from).expect("no piece at from") {
 				// different piece (and/or different player)
 				continue;
 			}
@@ -72,12 +72,13 @@ impl Move {
 			specify_file = true;
 		}
 
-		let en_passant =
-			piece == Piece::Pawn && self.from.file() != self.to.file() && board[self.to].is_none();
+		let en_passant = piece == Piece::Pawn
+			&& self.from.file() != self.to.file()
+			&& board.getp(self.to).is_none();
 		FormattedMove {
 			mov: self,
 			piece,
-			capture: board[self.to].is_some() || en_passant,
+			capture: board.getp(self.to).is_some() || en_passant,
 			specify_file,
 			specify_rank,
 			kingside: piece == Piece::King
