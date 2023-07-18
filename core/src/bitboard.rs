@@ -7,10 +7,17 @@ pub struct Bitboard {
 	value: u64,
 }
 
+const NOT_TOP_ROW: u64 = 0x7f7f_7f7f_7f7f_7f7f;
+const NOT_BOTTOM_ROW: u64 = 0xfefe_fefe_fefe_fefe;
+
 impl Bitboard {
 	/// Constructs a new bitboard using the given u64
 	pub fn new(value: u64) -> Self {
 		Self { value }
+	}
+
+	pub fn single_bit(pos: Pos) -> Self {
+		Self::new(1 << pos.value())
 	}
 
 	/// Returns an empty bitboard
@@ -41,6 +48,49 @@ impl Bitboard {
 	/// Returns the number of bits set in this bitboard
 	pub fn count(&self) -> u8 {
 		self.value.count_ones() as u8
+	}
+
+	pub fn ilog2(&self) -> u8 {
+		self.value.ilog2() as u8
+	}
+
+	pub fn shift_left(&self) -> Self {
+		Self::new(self.value << 8)
+	}
+
+	pub fn shift_right(&self) -> Self {
+		Self::new(self.value >> 8)
+	}
+
+	pub fn shift_up(&self) -> Self {
+		Self::new((self.value & NOT_TOP_ROW) << 1)
+	}
+
+	pub fn shift_down(&self) -> Self {
+		Self::new((self.value & NOT_BOTTOM_ROW) >> 1)
+	}
+
+	pub fn knight_shifts(&self) -> Self {
+		self.shift_right().shift_right().shift_up()
+			| self.shift_right().shift_right().shift_down()
+			| self.shift_left().shift_left().shift_up()
+			| self.shift_left().shift_left().shift_down()
+			| self.shift_up().shift_up().shift_right()
+			| self.shift_up().shift_up().shift_left()
+			| self.shift_down().shift_down().shift_right()
+			| self.shift_down().shift_down().shift_left()
+	}
+
+	pub fn white_pawn_attack_shifts(&self) -> Self {
+		self.shift_up().shift_right() | self.shift_up().shift_left()
+	}
+
+	pub fn black_pawn_attack_shifts(&self) -> Self {
+		self.shift_down().shift_right() | self.shift_down().shift_left()
+	}
+
+	pub fn is_zero(&self) -> bool {
+		self.value == 0
 	}
 }
 

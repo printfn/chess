@@ -2,38 +2,134 @@ use crate::{Bitboard, Piece, Player, Pos};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Repr {
-	pieces: [Option<(Player, Piece)>; 64],
-	white_bitboard: Bitboard,
-	black_bitboard: Bitboard,
+	pub white_pawns: Bitboard,
+	pub black_pawns: Bitboard,
+	pub white_knights: Bitboard,
+	pub black_knights: Bitboard,
+	pub white_bishops: Bitboard,
+	pub black_bishops: Bitboard,
+	pub white_rooks: Bitboard,
+	pub black_rooks: Bitboard,
+	pub white_queens: Bitboard,
+	pub black_queens: Bitboard,
+	pub white_king: Bitboard,
+	pub black_king: Bitboard,
 }
 
 impl Repr {
 	pub fn empty() -> Self {
 		Self {
-			pieces: [None; 64],
-			black_bitboard: Bitboard::empty(),
-			white_bitboard: Bitboard::empty(),
+			white_pawns: Bitboard::empty(),
+			black_pawns: Bitboard::empty(),
+			white_knights: Bitboard::empty(),
+			black_knights: Bitboard::empty(),
+			white_bishops: Bitboard::empty(),
+			black_bishops: Bitboard::empty(),
+			white_rooks: Bitboard::empty(),
+			black_rooks: Bitboard::empty(),
+			white_queens: Bitboard::empty(),
+			black_queens: Bitboard::empty(),
+			white_king: Bitboard::empty(),
+			black_king: Bitboard::empty(),
 		}
 	}
 
 	pub fn get(&self, index: usize) -> Option<(Player, Piece)> {
-		self.pieces[index]
+		let pos = Pos::from_value(index as u8);
+		if self.white_pawns.get(pos) {
+			return Some((Player::White, Piece::Pawn));
+		}
+		if self.black_pawns.get(pos) {
+			return Some((Player::Black, Piece::Pawn));
+		}
+		if self.white_knights.get(pos) {
+			return Some((Player::White, Piece::Knight));
+		}
+		if self.black_knights.get(pos) {
+			return Some((Player::Black, Piece::Knight));
+		}
+		if self.white_bishops.get(pos) {
+			return Some((Player::White, Piece::Bishop));
+		}
+		if self.black_bishops.get(pos) {
+			return Some((Player::Black, Piece::Bishop));
+		}
+		if self.white_rooks.get(pos) {
+			return Some((Player::White, Piece::Rook));
+		}
+		if self.black_rooks.get(pos) {
+			return Some((Player::Black, Piece::Rook));
+		}
+		if self.white_queens.get(pos) {
+			return Some((Player::White, Piece::Queen));
+		}
+		if self.black_queens.get(pos) {
+			return Some((Player::Black, Piece::Queen));
+		}
+		if self.white_king.get(pos) {
+			return Some((Player::White, Piece::King));
+		}
+		if self.black_king.get(pos) {
+			return Some((Player::Black, Piece::King));
+		}
+		None
 	}
 
 	pub fn set(&mut self, index: usize, piece: Option<(Player, Piece)>) {
-		self.pieces[index] = piece;
+		let pos = Pos::from_value(index as u8);
+		if piece.is_some() {
+			self.set(index, None);
+		}
 		match piece {
 			None => {
-				self.white_bitboard.clear(Pos::from_value(index as u8));
-				self.black_bitboard.clear(Pos::from_value(index as u8));
+				self.white_pawns.clear(pos);
+				self.black_pawns.clear(pos);
+				self.white_knights.clear(pos);
+				self.black_knights.clear(pos);
+				self.white_bishops.clear(pos);
+				self.black_bishops.clear(pos);
+				self.white_rooks.clear(pos);
+				self.black_rooks.clear(pos);
+				self.white_queens.clear(pos);
+				self.black_queens.clear(pos);
+				self.white_king.clear(pos);
+				self.black_king.clear(pos);
 			}
-			Some((Player::White, _)) => {
-				self.white_bitboard.set(Pos::from_value(index as u8));
-				self.black_bitboard.clear(Pos::from_value(index as u8));
+			Some((Player::White, Piece::Pawn)) => {
+				self.white_pawns.set(pos);
 			}
-			Some((Player::Black, _)) => {
-				self.white_bitboard.clear(Pos::from_value(index as u8));
-				self.black_bitboard.set(Pos::from_value(index as u8));
+			Some((Player::Black, Piece::Pawn)) => {
+				self.black_pawns.set(pos);
+			}
+			Some((Player::White, Piece::Knight)) => {
+				self.white_knights.set(pos);
+			}
+			Some((Player::Black, Piece::Knight)) => {
+				self.black_knights.set(pos);
+			}
+			Some((Player::White, Piece::Bishop)) => {
+				self.white_bishops.set(pos);
+			}
+			Some((Player::Black, Piece::Bishop)) => {
+				self.black_bishops.set(pos);
+			}
+			Some((Player::White, Piece::Rook)) => {
+				self.white_rooks.set(pos);
+			}
+			Some((Player::Black, Piece::Rook)) => {
+				self.black_rooks.set(pos);
+			}
+			Some((Player::White, Piece::Queen)) => {
+				self.white_queens.set(pos);
+			}
+			Some((Player::Black, Piece::Queen)) => {
+				self.black_queens.set(pos);
+			}
+			Some((Player::White, Piece::King)) => {
+				self.white_king.set(pos);
+			}
+			Some((Player::Black, Piece::King)) => {
+				self.black_king.set(pos);
 			}
 		}
 	}
@@ -41,23 +137,32 @@ impl Repr {
 	/// Bitboard of all pieces belonging to the given player
 	pub fn player_pieces(&self, player: Player) -> Bitboard {
 		match player {
-			Player::White => self.white_bitboard,
-			Player::Black => self.black_bitboard,
+			Player::White => {
+				self.white_pawns
+					| self.white_knights | self.white_bishops
+					| self.white_rooks | self.white_queens
+					| self.white_king
+			}
+			Player::Black => {
+				self.black_pawns
+					| self.black_knights | self.black_bishops
+					| self.black_rooks | self.black_queens
+					| self.black_king
+			}
+		}
+	}
+
+	pub fn player_pieces_checks(&self, player: Player) -> Bitboard {
+		match player {
+			Player::White => self.white_bishops | self.white_rooks | self.white_queens,
+			Player::Black => self.black_bishops | self.black_rooks | self.black_queens,
 		}
 	}
 
 	pub fn king_pos(&self, colour: Player) -> Pos {
-		Pos::from_value(
-			self.pieces
-				.into_iter()
-				.position(|piece| {
-					if let Some((p, piece)) = piece {
-						p == colour && piece == Piece::King
-					} else {
-						false
-					}
-				})
-				.expect("could not find king") as u8,
-		)
+		Pos::from_value(match colour {
+			Player::White => self.white_king.ilog2(),
+			Player::Black => self.black_king.ilog2(),
+		})
 	}
 }

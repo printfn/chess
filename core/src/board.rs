@@ -118,20 +118,29 @@ impl Board {
 	}
 
 	fn square_in_check(&self, king_pos: Pos) -> bool {
-		for pos in king_pos.all_moves() & self.repr.player_pieces(!self.current_player) {
+		let x = match self.current_player {
+			Player::White => {
+				self.repr.black_knights.knight_shifts()
+					| self.repr.black_pawns.black_pawn_attack_shifts()
+					| Pos::from_value(self.repr.black_king.ilog2()).adjacent()
+			}
+			Player::Black => {
+				self.repr.white_knights.knight_shifts()
+					| self.repr.white_pawns.white_pawn_attack_shifts()
+					| Pos::from_value(self.repr.white_king.ilog2()).adjacent()
+			}
+		};
+		if !(x & Bitboard::single_bit(king_pos)).is_zero() {
+			return true;
+		}
+		for pos in king_pos.all_moves() & self.repr.player_pieces_checks(!self.current_player) {
 			let Some((_, piece)) = self.getp(pos) else {
 				unreachable!();
 			};
 			let check = match piece {
-				Piece::Pawn => {
-					match !self.current_player {
-						// we can ignore en passant, it never affects whether the king is in check or not
-						Player::White => pos.white_pawn_checks().get(king_pos),
-						Player::Black => pos.black_pawn_checks().get(king_pos),
-					}
-				}
-				Piece::Knight => pos.knight_moves().get(king_pos),
-				Piece::King => pos.adjacent().get(king_pos),
+				Piece::Pawn => unreachable!(),
+				Piece::Knight => unreachable!(),
+				Piece::King => unreachable!(),
 				Piece::Bishop => {
 					pos.bishop_moves().get(king_pos)
 						&& self.simple_piece_moves(pos, None).get(king_pos)
