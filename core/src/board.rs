@@ -132,7 +132,18 @@ impl Board {
 				}
 				Piece::Knight => pos.knight_moves().get(king_pos),
 				Piece::King => pos.adjacent().get(king_pos),
-				_ => self.simple_piece_moves(pos, None).get(king_pos),
+				Piece::Bishop => {
+					pos.bishop_moves().get(king_pos)
+						&& self.simple_piece_moves(pos, None).get(king_pos)
+				}
+				Piece::Rook => {
+					pos.rook_moves().get(king_pos)
+						&& self.simple_piece_moves(pos, None).get(king_pos)
+				}
+				Piece::Queen => {
+					pos.queen_moves().get(king_pos)
+						&& self.simple_piece_moves(pos, None).get(king_pos)
+				}
 			};
 			if check {
 				return true;
