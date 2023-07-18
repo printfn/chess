@@ -133,7 +133,9 @@ impl Board {
 		if !(x & Bitboard::single_bit(king_pos)).is_zero() {
 			return true;
 		}
-		for pos in king_pos.all_moves() & self.repr.player_pieces_checks(!self.current_player) {
+		for pos in (king_pos.bishop_moves() | king_pos.rook_moves())
+			& self.repr.player_pieces_checks(!self.current_player)
+		{
 			let Some((_, piece)) = self.getp(pos) else {
 				unreachable!();
 			};
