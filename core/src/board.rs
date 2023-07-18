@@ -148,22 +148,13 @@ impl Board {
 
 	pub fn all_moves(&self, mut add_move: impl FnMut(Move) -> ops::ControlFlow<()>) {
 		let king_pos = self.repr.king_pos(self.current_player);
-		for (i, piece) in self.repr.enumerate_pieces().enumerate() {
-			let Some((p, original_piece)) = piece else {
-				continue;
-			};
-			if p != self.current_player {
-				continue;
-			}
-			let pos = Pos::from_value(i as u8);
+		for pos in self.repr.player_pieces(self.current_player) {
+			let original_piece = self.getp(pos).unwrap().1;
 			let targets = self.simple_piece_moves(pos, self.en_passant_target);
 			for target in targets {
 				let mut new_board = self.clone();
-				new_board.repr.set(i, None);
-				new_board.repr.set(
-					target.value() as usize,
-					Some((self.current_player, original_piece)),
-				);
+				new_board.setp(pos, None);
+				new_board.setp(target, Some((self.current_player, original_piece)));
 				if new_board.square_in_check(if original_piece == Piece::King {
 					target
 				} else {

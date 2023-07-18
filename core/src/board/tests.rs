@@ -243,5 +243,5 @@ fn position_2() {
 
 #[test]
 fn benchmark() {
-	single_thread_perft(Board::initial_position(), 5);
+	single_thread_perft(Board::initial_position(), 6);
 }

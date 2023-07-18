@@ -60,8 +60,4 @@ impl Repr {
 				.expect("could not find king") as u8,
 		)
 	}
-
-	pub fn enumerate_pieces(&self) -> impl Iterator<Item = Option<(Player, Piece)>> + '_ {
-		self.pieces.iter().copied()
-	}
 }
