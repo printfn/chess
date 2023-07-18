@@ -3,11 +3,17 @@ use crate::{Bitboard, Piece, Player, Pos};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Repr {
 	pieces: [Option<(Player, Piece)>; 64],
+	white_bitboard: Bitboard,
+	black_bitboard: Bitboard,
 }
 
 impl Repr {
 	pub fn empty() -> Self {
-		Self { pieces: [None; 64] }
+		Self {
+			pieces: [None; 64],
+			black_bitboard: Bitboard::empty(),
+			white_bitboard: Bitboard::empty(),
+		}
 	}
 
 	pub fn get(&self, index: usize) -> Option<(Player, Piece)> {
@@ -16,19 +22,28 @@ impl Repr {
 
 	pub fn set(&mut self, index: usize, piece: Option<(Player, Piece)>) {
 		self.pieces[index] = piece;
+		match piece {
+			None => {
+				self.white_bitboard.clear(Pos::from_value(index as u8));
+				self.black_bitboard.clear(Pos::from_value(index as u8));
+			}
+			Some((Player::White, _)) => {
+				self.white_bitboard.set(Pos::from_value(index as u8));
+				self.black_bitboard.clear(Pos::from_value(index as u8));
+			}
+			Some((Player::Black, _)) => {
+				self.white_bitboard.clear(Pos::from_value(index as u8));
+				self.black_bitboard.set(Pos::from_value(index as u8));
+			}
+		}
 	}
 
 	/// Bitboard of all pieces belonging to the given player
 	pub fn player_pieces(&self, player: Player) -> Bitboard {
-		let mut result = Bitboard::empty();
-		for (i, piece) in self.pieces.iter().enumerate() {
-			if let Some((p, _)) = piece {
-				if *p == player {
-					result.set(Pos::from_value(i as u8));
-				}
-			}
+		match player {
+			Player::White => self.white_bitboard,
+			Player::Black => self.black_bitboard,
 		}
-		result
 	}
 
 	pub fn king_pos(&self, colour: Player) -> Pos {

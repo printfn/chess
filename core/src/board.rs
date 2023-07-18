@@ -118,16 +118,13 @@ impl Board {
 	}
 
 	fn square_in_check(&self, king_pos: Pos) -> bool {
-		for pos in king_pos.all_moves() {
-			let Some((player, piece)) = self.getp(pos) else {
-				continue;
+		for pos in king_pos.all_moves() & self.repr.player_pieces(!self.current_player) {
+			let Some((_, piece)) = self.getp(pos) else {
+				unreachable!();
 			};
-			if player == self.current_player {
-				continue;
-			}
 			let check = match piece {
 				Piece::Pawn => {
-					match player {
+					match !self.current_player {
 						// we can ignore en passant, it never affects whether the king is in check or not
 						Player::White => pos.white_pawn_checks().get(king_pos),
 						Player::Black => pos.black_pawn_checks().get(king_pos),
