@@ -6,7 +6,7 @@ fn main() {
 	let mut moves = vec![];
 	let mut input = String::new();
 	loop {
-		println!("{}", board);
+		println!("{board}");
 		if let Some(game_result) = board.game_result() {
 			println!("Game over: {}", game_result);
 			break;
