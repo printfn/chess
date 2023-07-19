@@ -1,3 +1,4 @@
+mod ai;
 mod bitboard;
 mod board;
 mod consts;
@@ -10,6 +11,7 @@ mod player;
 mod pos;
 mod rank;
 
+pub use ai::search;
 pub use bitboard::Bitboard;
 pub use board::Board;
 pub use consts::{

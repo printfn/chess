@@ -1,9 +1,10 @@
-use chess_core::Board;
+use chess_core::{search, Board};
 use std::{io::Write, ops};
 
 fn main() {
 	let mut board = Board::initial_position();
 	let mut moves = vec![];
+	let mut input = String::new();
 	loop {
 		println!("{}", board);
 		if let Some(game_result) = board.game_result() {
@@ -16,18 +17,20 @@ fn main() {
 		});
 		println!("Count: {}", moves.len());
 		for (i, m) in moves.iter().enumerate() {
-			println!("{i:2}: {}", m.format(board, &moves));
+			println!("{:2}: {}", i + 1, m.format(board, &moves));
 		}
 		let m = loop {
 			print!("Enter move: ");
 			std::io::stdout().flush().unwrap();
-			let mut input = String::new();
+			input.clear();
 			std::io::stdin().read_line(&mut input).unwrap();
 			let input = input.trim();
 			let input = input.parse::<usize>();
 			if let Ok(input) = input {
-				if input < moves.len() {
-					break moves[input];
+				if input == 0 {
+					break search(&board, 5).expect("Expected to find a move");
+				} else if input <= moves.len() {
+					break moves[input - 1];
 				}
 			}
 		};

@@ -9,9 +9,9 @@ use repr::Repr;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Board {
-	current_player: Player,
+	pub current_player: Player,
 	en_passant_target: Option<Pos>,
-	repr: Repr,
+	pub repr: Repr,
 	white_kingside_castle: bool,
 	white_queenside_castle: bool,
 	black_kingside_castle: bool,

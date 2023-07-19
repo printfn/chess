@@ -24,6 +24,10 @@ struct FormattedMove {
 }
 
 impl Move {
+	pub fn is_capture(self, board: &Board) -> bool {
+		board.getp(self.to).is_some()
+	}
+
 	pub fn format(self, board: Board, all_moves: &[Move]) -> impl fmt::Display + Send + Sync {
 		let (player, piece) = board.getp(self.from).expect("no piece at from");
 
