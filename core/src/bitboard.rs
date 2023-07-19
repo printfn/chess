@@ -71,14 +71,13 @@ impl Bitboard {
 	}
 
 	pub fn knight_shifts(&self) -> Self {
-		self.shift_right().shift_right().shift_up()
-			| self.shift_right().shift_right().shift_down()
-			| self.shift_left().shift_left().shift_up()
-			| self.shift_left().shift_left().shift_down()
-			| self.shift_up().shift_up().shift_right()
-			| self.shift_up().shift_up().shift_left()
-			| self.shift_down().shift_down().shift_right()
-			| self.shift_down().shift_down().shift_left()
+		let d1 = (self.value >> 1) & 0x7f7f7f7f7f7f7f7f;
+		let d2 = (self.value >> 2) & 0x3f3f3f3f3f3f3f3f;
+		let u1 = (self.value << 1) & 0xfefefefefefefefe;
+		let u2 = (self.value << 2) & 0xfcfcfcfcfcfcfcfc;
+		let a = d1 | u1;
+		let b = d2 | u2;
+		Self::new(a << 16 | a >> 16 | b << 8 | b >> 8)
 	}
 
 	pub fn white_pawn_attack_shifts(&self) -> Self {
