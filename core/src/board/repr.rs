@@ -150,10 +150,17 @@ impl Repr {
 		}
 	}
 
-	pub fn player_pieces_checks(&self, player: Player) -> Bitboard {
+	pub fn player_pieces_checks_1(&self, player: Player) -> Bitboard {
 		match player {
-			Player::White => self.white_bishops | self.white_rooks | self.white_queens,
-			Player::Black => self.black_bishops | self.black_rooks | self.black_queens,
+			Player::White => self.white_bishops | self.white_queens,
+			Player::Black => self.black_bishops | self.black_queens,
+		}
+	}
+
+	pub fn player_pieces_checks_2(&self, player: Player) -> Bitboard {
+		match player {
+			Player::White => self.white_rooks | self.white_queens,
+			Player::Black => self.black_rooks | self.black_queens,
 		}
 	}
 
@@ -161,6 +168,23 @@ impl Repr {
 		match colour {
 			Player::White => self.white_king,
 			Player::Black => self.black_king,
+		}
+	}
+
+	pub fn mut_bitboard(&mut self, pp: (Player, Piece)) -> &mut Bitboard {
+		match pp {
+			(Player::White, Piece::Pawn) => &mut self.white_pawns,
+			(Player::Black, Piece::Pawn) => &mut self.black_pawns,
+			(Player::White, Piece::Knight) => &mut self.white_knights,
+			(Player::Black, Piece::Knight) => &mut self.black_knights,
+			(Player::White, Piece::Bishop) => &mut self.white_bishops,
+			(Player::Black, Piece::Bishop) => &mut self.black_bishops,
+			(Player::White, Piece::Rook) => &mut self.white_rooks,
+			(Player::Black, Piece::Rook) => &mut self.black_rooks,
+			(Player::White, Piece::Queen) => &mut self.white_queens,
+			(Player::Black, Piece::Queen) => &mut self.black_queens,
+			(Player::White, Piece::King) => panic!("Cannot mutate king bitboard"),
+			(Player::Black, Piece::King) => panic!("Cannot mutate king bitboard"),
 		}
 	}
 }

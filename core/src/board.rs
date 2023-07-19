@@ -133,30 +133,11 @@ impl Board {
 		if !(x & Bitboard::single_bit(king_pos)).is_zero() {
 			return true;
 		}
-		for pos in (king_pos.bishop_moves() | king_pos.rook_moves())
-			& self.repr.player_pieces_checks(!self.current_player)
+		for pos in (king_pos.bishop_moves()
+			& self.repr.player_pieces_checks_1(!self.current_player))
+			| (king_pos.rook_moves() & self.repr.player_pieces_checks_2(!self.current_player))
 		{
-			let Some((_, piece)) = self.getp(pos) else {
-				unreachable!();
-			};
-			let check = match piece {
-				Piece::Pawn => unreachable!(),
-				Piece::Knight => unreachable!(),
-				Piece::King => unreachable!(),
-				Piece::Bishop => {
-					pos.bishop_moves().get(king_pos)
-						&& self.simple_piece_moves(pos, None).get(king_pos)
-				}
-				Piece::Rook => {
-					pos.rook_moves().get(king_pos)
-						&& self.simple_piece_moves(pos, None).get(king_pos)
-				}
-				Piece::Queen => {
-					pos.queen_moves().get(king_pos)
-						&& self.simple_piece_moves(pos, None).get(king_pos)
-				}
-			};
-			if check {
+			if self.simple_piece_moves(pos, None).get(king_pos) {
 				return true;
 			}
 		}
@@ -226,8 +207,10 @@ impl Board {
 		if kingside_castle
 			&& self.getp(Pos::new(File::F, rank)).is_none()
 			&& self.getp(Pos::new(File::G, rank)).is_none()
-			&& self.getp(Pos::new(File::H, rank)) == Some((self.current_player, Piece::Rook))
-			&& !self.square_in_check(Pos::new(File::E, rank))
+			&& match self.current_player {
+				Player::White => self.repr.white_rooks.get(Pos::new(File::H, Rank::One)),
+				Player::Black => self.repr.black_rooks.get(Pos::new(File::H, Rank::Eight)),
+			} && !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::F, rank))
 			&& !self.square_in_check(Pos::new(File::G, rank))
 		{
@@ -245,8 +228,10 @@ impl Board {
 			&& self.getp(Pos::new(File::D, rank)).is_none()
 			&& self.getp(Pos::new(File::C, rank)).is_none()
 			&& self.getp(Pos::new(File::B, rank)).is_none()
-			&& self.getp(Pos::new(File::A, rank)) == Some((self.current_player, Piece::Rook))
-			&& !self.square_in_check(Pos::new(File::E, rank))
+			&& match self.current_player {
+				Player::White => self.repr.white_rooks.get(Pos::new(File::A, Rank::One)),
+				Player::Black => self.repr.black_rooks.get(Pos::new(File::A, Rank::Eight)),
+			} && !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::D, rank))
 			&& !self.square_in_check(Pos::new(File::C, rank))
 		{
@@ -264,8 +249,23 @@ impl Board {
 
 	pub fn apply_move(&mut self, mov: Move) {
 		let (player, piece) = self.getp(mov.from).expect("no piece at from");
-		self.setp(mov.from, None);
-		self.setp(mov.to, Some((player, mov.promotion.unwrap_or(piece))));
+		self.setp(mov.to, None);
+		if piece == Piece::King {
+			match player {
+				Player::White => self.repr.white_king = mov.to,
+				Player::Black => self.repr.black_king = mov.to,
+			}
+		} else {
+			let b = self.repr.mut_bitboard((player, piece));
+			b.clear(mov.from);
+			match mov.promotion {
+				None => b.set(mov.to),
+				Some(promotion) => {
+					let pb = self.repr.mut_bitboard((player, promotion));
+					pb.set(mov.to);
+				}
+			}
+		}
 		let back_dir = match player {
 			Player::White => Direction::S,
 			Player::Black => Direction::N,
@@ -273,7 +273,8 @@ impl Board {
 		if piece == Piece::Pawn && Some(mov.to) == self.en_passant_target {
 			let capture_pos = mov.to.offset(back_dir).expect("invalid en passant move");
 			assert!(self.getp(capture_pos) == Some((!player, Piece::Pawn)));
-			self.setp(capture_pos, None);
+			self.repr.black_pawns.clear(capture_pos);
+			self.repr.white_pawns.clear(capture_pos);
 		}
 		if piece == Piece::Pawn && mov.to.value().abs_diff(mov.from.value()) == 2 {
 			self.en_passant_target = Some(mov.to.offset(back_dir).expect("invalid pawn move"));
@@ -285,14 +286,16 @@ impl Board {
 				let rook_pos = Pos::new(File::H, mov.from.rank());
 				let (player, piece) = self.getp(rook_pos).expect("no rook on h1");
 				assert!(player == self.current_player && piece == Piece::Rook);
-				self.setp(rook_pos, None);
-				self.setp(Pos::new(File::F, mov.from.rank()), Some((player, piece)));
+				let b = self.repr.mut_bitboard((player, Piece::Rook));
+				b.clear(rook_pos);
+				b.set(Pos::new(File::F, mov.from.rank()));
 			} else if mov.from.file() == File::E && mov.to.file() == File::C {
 				let rook_pos = Pos::new(File::A, mov.from.rank());
 				let (player, piece) = self.getp(rook_pos).expect("no rook on a1");
 				assert!(player == self.current_player && piece == Piece::Rook);
-				self.setp(rook_pos, None);
-				self.setp(Pos::new(File::D, mov.from.rank()), Some((player, piece)));
+				let b = self.repr.mut_bitboard((player, Piece::Rook));
+				b.clear(rook_pos);
+				b.set(Pos::new(File::D, mov.from.rank()));
 			}
 		}
 		self.current_player = !self.current_player;
