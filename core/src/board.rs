@@ -122,12 +122,12 @@ impl Board {
 			Player::White => {
 				self.repr.black_knights.knight_shifts()
 					| self.repr.black_pawns.black_pawn_attack_shifts()
-					| Pos::from_value(self.repr.black_king.ilog2()).adjacent()
+					| self.repr.king_pos(Player::Black).adjacent()
 			}
 			Player::Black => {
 				self.repr.white_knights.knight_shifts()
 					| self.repr.white_pawns.white_pawn_attack_shifts()
-					| Pos::from_value(self.repr.white_king.ilog2()).adjacent()
+					| self.repr.king_pos(Player::White).adjacent()
 			}
 		};
 		if !(x & Bitboard::single_bit(king_pos)).is_zero() {

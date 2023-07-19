@@ -1,4 +1,4 @@
-use crate::{Bitboard, Piece, Player, Pos};
+use crate::{Bitboard, File, Piece, Player, Pos, Rank};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Repr {
@@ -12,8 +12,8 @@ pub struct Repr {
 	pub black_rooks: Bitboard,
 	pub white_queens: Bitboard,
 	pub black_queens: Bitboard,
-	pub white_king: Bitboard,
-	pub black_king: Bitboard,
+	pub white_king: Pos,
+	pub black_king: Pos,
 }
 
 impl Repr {
@@ -29,8 +29,8 @@ impl Repr {
 			black_rooks: Bitboard::empty(),
 			white_queens: Bitboard::empty(),
 			black_queens: Bitboard::empty(),
-			white_king: Bitboard::empty(),
-			black_king: Bitboard::empty(),
+			white_king: Pos::new(File::E, Rank::One),
+			black_king: Pos::new(File::E, Rank::Eight),
 		}
 	}
 
@@ -66,10 +66,10 @@ impl Repr {
 		if self.black_queens.get(pos) {
 			return Some((Player::Black, Piece::Queen));
 		}
-		if self.white_king.get(pos) {
+		if self.white_king == pos {
 			return Some((Player::White, Piece::King));
 		}
-		if self.black_king.get(pos) {
+		if self.black_king == pos {
 			return Some((Player::Black, Piece::King));
 		}
 		None
@@ -92,8 +92,6 @@ impl Repr {
 				self.black_rooks.clear(pos);
 				self.white_queens.clear(pos);
 				self.black_queens.clear(pos);
-				self.white_king.clear(pos);
-				self.black_king.clear(pos);
 			}
 			Some((Player::White, Piece::Pawn)) => {
 				self.white_pawns.set(pos);
@@ -126,10 +124,10 @@ impl Repr {
 				self.black_queens.set(pos);
 			}
 			Some((Player::White, Piece::King)) => {
-				self.white_king.set(pos);
+				self.white_king = pos;
 			}
 			Some((Player::Black, Piece::King)) => {
-				self.black_king.set(pos);
+				self.black_king = pos;
 			}
 		}
 	}
@@ -141,13 +139,13 @@ impl Repr {
 				self.white_pawns
 					| self.white_knights | self.white_bishops
 					| self.white_rooks | self.white_queens
-					| self.white_king
+					| Bitboard::single_bit(self.white_king)
 			}
 			Player::Black => {
 				self.black_pawns
 					| self.black_knights | self.black_bishops
 					| self.black_rooks | self.black_queens
-					| self.black_king
+					| Bitboard::single_bit(self.black_king)
 			}
 		}
 	}
@@ -160,9 +158,9 @@ impl Repr {
 	}
 
 	pub fn king_pos(&self, colour: Player) -> Pos {
-		Pos::from_value(match colour {
-			Player::White => self.white_king.ilog2(),
-			Player::Black => self.black_king.ilog2(),
-		})
+		match colour {
+			Player::White => self.white_king,
+			Player::Black => self.black_king,
+		}
 	}
 }

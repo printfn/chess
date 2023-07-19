@@ -224,8 +224,11 @@ fn position_2() {
 
 	assert_moves(board, &["a4", "bxa3 e.p."]);
 	assert_moves(board, &["Nxd7", "0-0-0"]);
+	assert_moves(board, &["d6", "Bb5", "Rb1", "Kf8"]);
+	assert_moves(board, &["d6", "Bb5", "Rb1", "Kd8"]);
 
 	assert_perft(assert_moves(board, &["d6", "Bb5", "dxe7"]), 1, 38);
+	assert_perft(assert_moves(board, &["d6", "Bb5", "Rb1"]), 1, 43);
 	assert_perft(assert_moves(board, &["d6", "Bb5"]), 2, 2035);
 	assert_perft(assert_moves(board, &["d6"]), 3, 79551);
 
