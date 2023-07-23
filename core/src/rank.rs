@@ -122,14 +122,14 @@ impl TryFrom<char> for Rank {
 mod tests {
 	extern crate alloc;
 	use super::*;
-	use alloc::{format, string::ToString};
+	use alloc::string::ToString;
 
 	#[test]
 	fn to_string() {
 		for rank in RANKS {
 			let a = char::from(rank).to_string();
 			let b = <&str>::from(rank);
-			let c = format!("{}", rank);
+			let c = rank.to_string();
 			assert_eq!(a, b);
 			assert_eq!(a, c);
 		}

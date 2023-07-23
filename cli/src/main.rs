@@ -8,7 +8,7 @@ fn main() {
 	loop {
 		println!("{board}");
 		if let Some(game_result) = board.game_result() {
-			println!("Game over: {}", game_result);
+			println!("Game over: {game_result}");
 			break;
 		}
 		board.all_moves(|m| {

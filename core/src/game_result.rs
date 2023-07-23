@@ -11,7 +11,7 @@ pub enum GameResult {
 impl fmt::Display for GameResult {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
-			GameResult::Win { winner, win } => write!(f, "{} wins by {}", winner, win),
+			GameResult::Win { winner, win } => write!(f, "{winner} wins by {win}"),
 			GameResult::Draw { draw } => write!(f, "{draw}"),
 		}
 	}

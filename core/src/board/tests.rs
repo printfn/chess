@@ -63,8 +63,7 @@ fn assert_move(mut board: Board, mov: &str) -> Board {
 		}
 	}
 	panic!(
-		"move not found: {} (found moves {:?})",
-		mov,
+		"move not found: {mov} (found moves {:?})",
 		moves
 			.iter()
 			.map(|m| m.format(board, &moves).to_string())
