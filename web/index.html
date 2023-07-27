@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chess</title>
+</head>
+<body>
+<script src="pkg/wasm.js"></script>
+<script>
+window.onload = async () => {
+	let { greet } = await wasm_bindgen('./pkg/wasm_bg.wasm');
+	greet();
+}
+</script>
+</body>
+</html>
