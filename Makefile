@@ -1,2 +1,5 @@
+.PHONY: web
+
 web:
-	cd wasm && wasm-pack build --release --target no-modules --out-dir ../web/pkg
+	cd wasm && wasm-pack build --release
+	cd web && yarn && yarn build

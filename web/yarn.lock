@@ -379,6 +379,7 @@ __metadata:
     sass: ^1.64.1
     typescript: ^5.0.2
     vite: ^4.4.5
+    wasm: ../wasm/pkg
   languageName: unknown
   linkType: soft
 
@@ -1563,6 +1564,13 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 787c4d891da18d0a0545bee07dec73c3201979dcf2b1ea3dc13fdd2d3b9ad76d413bcc0e68502183e309007a612c1f4116adefe0093d95fbbb9cf1c1755f7e41
+  languageName: node
+  linkType: hard
+
+"wasm@file:../wasm/pkg::locator=chess%40workspace%3A.":
+  version: 0.1.0
+  resolution: "wasm@file:../wasm/pkg#../wasm/pkg::hash=c324ec&locator=chess%40workspace%3A."
+  checksum: c7d809160ac097a063cd2a71656dde4cb76fa5cac291257a417fff69beaf0be9e9b3181f9b1585214e276d59f0d8cdbb343711946aba454f5628161942f7bf87
   languageName: node
   linkType: hard
 
