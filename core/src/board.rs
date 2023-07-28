@@ -33,6 +33,10 @@ impl Board {
 
 	pub fn from_fen(fen: &str) -> Self {
 		let mut result = Self::empty();
+		result.white_kingside_castle = false;
+		result.white_queenside_castle = false;
+		result.black_kingside_castle = false;
+		result.black_queenside_castle = false;
 		let mut fen_iter = fen.chars();
 		let mut pos: Option<Pos> = None;
 		let mut next = || {
@@ -71,11 +75,15 @@ impl Board {
 		assert_eq!(fen_iter.next().unwrap(), ' ');
 		while let Some(ch) = fen_iter.next() {
 			match ch {
-				'-' | ' ' => break,
+				'-' => {
+					assert_eq!(fen_iter.next().unwrap(), ' ');
+					break;
+				},
 				'K' => result.white_kingside_castle = true,
 				'Q' => result.white_queenside_castle = true,
 				'k' => result.black_kingside_castle = true,
 				'q' => result.black_queenside_castle = true,
+				' ' => break,
 				_ => panic!("invalid fen"),
 			}
 		}
@@ -89,6 +97,61 @@ impl Board {
 				));
 			}
 			_ => panic!("invalid fen"),
+		}
+		// TODO: halfmove clock and fullmove number
+		result
+	}
+
+	pub fn to_fen(&self) -> String {
+		let mut result = String::new();
+		for rank in (0..8).rev() {
+			let mut empty = 0;
+			for file in 'a'..='h' {
+				let pos = Pos::new(File::from_value(file as u8 - b'a'), Rank::from_value(rank));
+				if let Some((player, piece)) = self.getp(pos) {
+					if empty > 0 {
+						result.push((b'0' + empty) as char);
+						empty = 0;
+					}
+					result.push(piece.ascii_char(player));
+				} else {
+					empty += 1;
+				}
+			}
+			if empty > 0 {
+				result.push((b'0' + empty) as char);
+			}
+			if rank > 0 {
+				result.push('/');
+			}
+		}
+		result.push(' ');
+		result.push(match self.current_player {
+			Player::White => 'w',
+			Player::Black => 'b',
+		});
+		result.push(' ');
+		if self.white_kingside_castle {
+			result.push('K');
+		}
+		if self.white_queenside_castle {
+			result.push('Q');
+		}
+		if self.black_kingside_castle {
+			result.push('k');
+		}
+		if self.black_queenside_castle {
+			result.push('q');
+		}
+		if result.ends_with(' ') {
+			result.push('-');
+		}
+		result.push(' ');
+		if let Some(pos) = self.en_passant_target {
+			result.push(pos.file().into());
+			result.push(pos.rank().into());
+		} else {
+			result.push('-');
 		}
 		// TODO: halfmove clock and fullmove number
 		result

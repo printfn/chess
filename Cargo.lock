@@ -24,7 +24,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "chess-core"
 version = "0.1.0"
 dependencies = [
- "nanorand",
+ "picorand",
  "rayon",
 ]
 
@@ -112,12 +112,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nanorand"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a51313c5820b0b02bd422f4b44776fbf47961755c74ce64afc73bfad10226c3"
-
-[[package]]
 name = "num_cpus"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -132,6 +126,12 @@ name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
+
+[[package]]
+name = "picorand"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb6aac40f95a2bda51922f2eb54fbf81959917307d9d2c66896fb789fe2402a6"
 
 [[package]]
 name = "proc-macro2"
@@ -200,6 +200,7 @@ checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
 name = "wasm"
 version = "0.1.0"
 dependencies = [
+ "chess-core",
  "wasm-bindgen",
 ]
 

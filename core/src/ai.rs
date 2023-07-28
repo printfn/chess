@@ -1,6 +1,4 @@
-use std::ops;
-
-use nanorand::Rng;
+use std::{ops, cmp};
 
 use crate::{Board, Move, Player};
 
@@ -116,8 +114,14 @@ pub fn search(board: &Board, depth: usize) -> Option<Move> {
 		moves.push(m);
 		ops::ControlFlow::Continue(())
 	});
-	let mut r = nanorand::WyRand::new();
-	r.shuffle(&mut moves);
+	let mut r = picorand::RNG::<picorand::WyRand, u16>::new(0xdeadbeef);
+	moves.sort_unstable_by(|_, _| {
+		match r.generate_range(0, 2) {
+			0 => cmp::Ordering::Greater,
+			1 => cmp::Ordering::Less,
+			_ => unreachable!(),
+		}
+	});
 	for m in moves {
 		let mut new_board = board.clone();
 		new_board.apply_move(m);

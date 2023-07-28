@@ -111,6 +111,21 @@ impl From<&File> for &str {
 	}
 }
 
+impl From<File> for char {
+	fn from(value: File) -> Self {
+		match value {
+			File::A => 'a',
+			File::B => 'b',
+			File::C => 'c',
+			File::D => 'd',
+			File::E => 'e',
+			File::F => 'f',
+			File::G => 'g',
+			File::H => 'h',
+		}
+	}
+}
+
 impl fmt::Display for File {
 	fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
 		let s: &str = self.into();

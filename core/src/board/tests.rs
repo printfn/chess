@@ -158,7 +158,9 @@ fn initial_position() {
 
 #[test]
 fn position_2() {
-	let board = Board::from_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
+	let fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -";
+	let board = Board::from_fen(fen);
+	assert_eq!(board.to_fen(), fen);
 
 	assert_eq!(
 		board.to_string(),
@@ -207,4 +209,11 @@ fn position_2() {
 #[test]
 fn benchmark() {
 	single_thread_perft(Board::initial_position(), 6);
+}
+
+#[test]
+fn fen_test() {
+	let fen = "rnbq3r/ppppkppp/5n2/2b1p3/2B1P3/5N2/PPPPKPPP/RNBQ3R w - -";
+	let b = Board::from_fen(fen);
+	assert_eq!(b.to_fen(), fen)
 }
