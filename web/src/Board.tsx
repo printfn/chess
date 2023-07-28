@@ -67,5 +67,15 @@ export function Board({ perspective }: Props) {
 		}
 	}, [ref, api, config]);
 
-	return <div ref={ref} style={{ height: '500px', width: '500px' }} />;
+	return (
+		<div
+			ref={ref}
+			style={{
+				height: 'auto',
+				width: '100%',
+				maxWidth: '80vh',
+				aspectRatio: 1,
+			}}
+		/>
+	);
 }
