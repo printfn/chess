@@ -23,5 +23,11 @@ export function Board({ config }: Props) {
 		api?.set(config);
 	}, [api, config]);
 
+	useEffect(() => {
+		if (api) {
+			api?.move('e2', 'e4');
+		}
+	}, [api]);
+
 	return <div ref={ref} style={{ height: '500px', width: '500px' }} />;
 }
