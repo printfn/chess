@@ -3,7 +3,7 @@ import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
 import { File, Key, Rank } from 'chessground/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { valid_moves, apply_move } from '../../wasm/pkg';
+import { valid_moves, apply_move, calculate_move } from '../../wasm/pkg';
 
 function possibleMoves(fen: string): Map<Key, Key[]> {
 	console.log('getting possible moves for fen', fen);
@@ -49,6 +49,9 @@ export function Board({ perspective }: Props) {
 							nextPos = apply_move(fen, from, to, promotion);
 						}
 						setFen(nextPos);
+						setTimeout(() => {
+							setFen(calculate_move(nextPos));
+						}, 500);
 					},
 				},
 			},

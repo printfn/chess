@@ -1,4 +1,4 @@
-use chess_core::{Board, Player};
+use chess_core::{Board, Player, search};
 use std::ops;
 use wasm_bindgen::prelude::*;
 
@@ -27,6 +27,17 @@ pub fn apply_move(fen: &str, from: &str, to: &str, promotion: Option<char>) -> S
 		mov = Some(m);
 		ops::ControlFlow::Break(())
 	});
+	let Some(mov) = mov else {
+		return "".to_string();
+	};
+	board.apply_move(mov);
+	board.to_fen()
+}
+
+#[wasm_bindgen]
+pub fn calculate_move(fen: &str) -> String {
+	let mut board = Board::from_fen(fen);
+	let mov = search(&board, 3);
 	let Some(mov) = mov else {
 		return "".to_string();
 	};
