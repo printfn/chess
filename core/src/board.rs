@@ -31,6 +31,69 @@ impl Board {
 		}
 	}
 
+	pub fn from_fen(fen: &str) -> Self {
+		let mut result = Self::empty();
+		let mut fen_iter = fen.chars();
+		let mut pos: Option<Pos> = None;
+		let mut next = || {
+			pos = Some(if let Some(pos) = pos {
+				if let Some(x) = pos.offset(Direction::E) {
+					x
+				} else {
+					Pos::new(File::A, pos.rank().prev().expect("invalid fen"))
+				}
+			} else {
+				Pos::new(File::A, Rank::Eight)
+			});
+			pos.unwrap()
+		};
+		while let Some(ch) = fen_iter.next() {
+			match ch {
+				' ' => break,
+				'1'..='8' => {
+					let n = ch as u8 - b'0';
+					for _ in 0..n {
+						result.setp(next(), None);
+					}
+				}
+				'/' => (),
+				_ => {
+					let piece = Piece::from_ascii_char(ch);
+					result.setp(next(), Some(piece));
+				}
+			}
+		}
+		result.current_player = match fen_iter.next() {
+			Some('w') => Player::White,
+			Some('b') => Player::Black,
+			_ => panic!("invalid fen"),
+		};
+		assert_eq!(fen_iter.next().unwrap(), ' ');
+		while let Some(ch) = fen_iter.next() {
+			match ch {
+				'-' | ' ' => break,
+				'K' => result.white_kingside_castle = true,
+				'Q' => result.white_queenside_castle = true,
+				'k' => result.black_kingside_castle = true,
+				'q' => result.black_queenside_castle = true,
+				_ => panic!("invalid fen"),
+			}
+		}
+		match fen_iter.next().unwrap() {
+			'-' => (),
+			file @ 'a'..='h' => {
+				let rank = fen_iter.next().unwrap();
+				result.en_passant_target = Some(Pos::new(
+					File::from_value(file as u8 - b'a'),
+					Rank::from_value(rank as u8 - b'1'),
+				));
+			}
+			_ => panic!("invalid fen"),
+		}
+		// TODO: halfmove clock and fullmove number
+		result
+	}
+
 	pub fn initial_position() -> Self {
 		let mut board = Self::empty();
 		for (i, piece) in HOME_ROW.iter().copied().enumerate() {

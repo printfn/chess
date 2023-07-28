@@ -56,6 +56,24 @@ impl Piece {
 		}
 	}
 
+	pub fn from_ascii_char(ch: char) -> (Player, Self) {
+		match ch {
+			'P' => (Player::White, Piece::Pawn),
+			'N' => (Player::White, Piece::Knight),
+			'B' => (Player::White, Piece::Bishop),
+			'R' => (Player::White, Piece::Rook),
+			'Q' => (Player::White, Piece::Queen),
+			'K' => (Player::White, Piece::King),
+			'p' => (Player::Black, Piece::Pawn),
+			'n' => (Player::Black, Piece::Knight),
+			'b' => (Player::Black, Piece::Bishop),
+			'r' => (Player::Black, Piece::Rook),
+			'q' => (Player::Black, Piece::Queen),
+			'k' => (Player::Black, Piece::King),
+			_ => panic!("Invalid piece character: {ch}"),
+		}
+	}
+
 	pub fn emoji(self, player: Player) -> char {
 		match (player, self) {
 			(Player::White, Piece::Pawn) => '♙',

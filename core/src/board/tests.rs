@@ -158,46 +158,7 @@ fn initial_position() {
 
 #[test]
 fn position_2() {
-	let mut board = Board::empty();
-	board.set(0, Some((Player::White, Piece::Rook)));
-	board.set(1, Some((Player::White, Piece::Pawn)));
-	board.set(5, Some((Player::Black, Piece::Bishop)));
-	board.set(6, Some((Player::Black, Piece::Pawn)));
-	board.set(7, Some((Player::Black, Piece::Rook)));
-
-	board.set(9, Some((Player::White, Piece::Pawn)));
-	board.set(11, Some((Player::Black, Piece::Pawn)));
-	board.set(13, Some((Player::Black, Piece::Knight)));
-
-	board.set(17, Some((Player::White, Piece::Pawn)));
-	board.set(18, Some((Player::White, Piece::Knight)));
-	board.set(22, Some((Player::Black, Piece::Pawn)));
-
-	board.set(25, Some((Player::White, Piece::Bishop)));
-	board.set(28, Some((Player::White, Piece::Pawn)));
-	board.set(30, Some((Player::Black, Piece::Pawn)));
-
-	board.set(32, Some((Player::White, Piece::King)));
-	board.set(33, Some((Player::White, Piece::Bishop)));
-	board.set(35, Some((Player::White, Piece::Pawn)));
-	board.set(36, Some((Player::White, Piece::Knight)));
-	board.set(37, Some((Player::Black, Piece::Pawn)));
-	board.set(38, Some((Player::Black, Piece::Queen)));
-	board.set(39, Some((Player::Black, Piece::King)));
-
-	board.set(41, Some((Player::White, Piece::Pawn)));
-	board.set(42, Some((Player::White, Piece::Queen)));
-	board.set(45, Some((Player::Black, Piece::Knight)));
-	board.set(46, Some((Player::Black, Piece::Pawn)));
-
-	board.set(49, Some((Player::White, Piece::Pawn)));
-	board.set(53, Some((Player::Black, Piece::Pawn)));
-	board.set(54, Some((Player::Black, Piece::Bishop)));
-
-	board.set(56, Some((Player::White, Piece::Rook)));
-	board.set(57, Some((Player::White, Piece::Pawn)));
-	board.set(58, Some((Player::Black, Piece::Pawn)));
-	board.set(63, Some((Player::Black, Piece::Rook)));
+	let board = Board::from_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
 
 	assert_eq!(
 		board.to_string(),
