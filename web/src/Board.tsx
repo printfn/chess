@@ -19,7 +19,11 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 	return result;
 }
 
-export function Board() {
+interface Props {
+	perspective: 'white' | 'black';
+}
+
+export function Board({ perspective }: Props) {
 	const [fen, setFen] = useState(
 		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	);
@@ -30,6 +34,7 @@ export function Board() {
 		() => ({
 			fen: fen,
 			coordinates: true,
+			orientation: perspective,
 			movable: {
 				free: false,
 				dests: possibleMoves(fen),
@@ -51,7 +56,7 @@ export function Board() {
 				enabled: true,
 			},
 		}),
-		[fen],
+		[fen, perspective],
 	);
 
 	useEffect(() => {

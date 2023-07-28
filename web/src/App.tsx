@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { Board } from './Board';
 
 function App() {
-	const [count, setCount] = useState(0);
+	const [perspective, setPerspective] = useState(true);
 
 	return (
 		<div>
-			<button onClick={() => setCount(count => count + 1)}>
-				count is {count}
-			</button>
-			<Board />
+			<button onClick={() => setPerspective(!perspective)}>Flip Board</button>
+			<Board perspective={perspective ? 'white' : 'black'} />
 		</div>
 	);
 }
