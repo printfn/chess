@@ -12,13 +12,13 @@
 		"prettier": "^3.0.0",
 		"sass": "^1.64.1",
 		"typescript": "^5.0.2",
-		"vite": "^4.4.5"
+		"vite": "^4.4.5",
+		"vite-plugin-wasm": "^3.2.2"
 	},
 	"dependencies": {
 		"@popperjs/core": "^2.11.8",
 		"bootstrap": "^5.3.1",
-		"chessground": "^8.3.13",
-		"wasm": "../wasm/pkg"
+		"chessground": "^8.3.13"
 	},
 	"prettier": {
 		"useTabs": true,

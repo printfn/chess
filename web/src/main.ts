@@ -1,6 +1,7 @@
 import './style.scss';
 import { Chessground } from 'chessground';
 import { Config } from 'chessground/config';
+import { greet } from '../../wasm/pkg';
 
 const config: Config = {
 	movable: {
@@ -14,3 +15,4 @@ const config: Config = {
 const chessElement = document.getElementById('chessboard')!;
 const board = Chessground(chessElement, config);
 board.move('e2', 'e4');
+greet();
