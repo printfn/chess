@@ -9,7 +9,7 @@ const relPnpApiPath = '../../../../.pnp.cjs';
 const absPnpApiPath = resolve(__dirname, relPnpApiPath);
 const absRequire = createRequire(absPnpApiPath);
 
-const moduleWrapper = (tsserver) => {
+const moduleWrapper = tsserver => {
 	if (!process.versions.pnp) {
 		return tsserver;
 	}
@@ -17,12 +17,12 @@ const moduleWrapper = (tsserver) => {
 	const { isAbsolute } = require(`path`);
 	const pnpApi = require(`pnpapi`);
 
-	const isVirtual = (str) => str.match(/\/(\$\$virtual|__virtual__)\//);
-	const isPortal = (str) => str.startsWith('portal:/');
-	const normalize = (str) => str.replace(/\\/g, `/`).replace(/^\/?/, `/`);
+	const isVirtual = str => str.match(/\/(\$\$virtual|__virtual__)\//);
+	const isPortal = str => str.startsWith('portal:/');
+	const normalize = str => str.replace(/\\/g, `/`).replace(/^\/?/, `/`);
 
 	const dependencyTreeRoots = new Set(
-		pnpApi.getDependencyTreeRoots().map((locator) => {
+		pnpApi.getDependencyTreeRoots().map(locator => {
 			return `${locator.name}@${locator.reference}`;
 		}),
 	);
