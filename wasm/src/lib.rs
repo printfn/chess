@@ -20,9 +20,7 @@ pub fn apply_move(fen: &str, from: &str, to: &str, promotion: Option<char>) -> S
 	board.all_moves(|m| {
 		if m.from.to_string() != from
 			|| m.to.to_string() != to
-			|| m.promotion
-				.map_or(None, |p| Some(p.ascii_char(Player::White)))
-				!= promotion
+			|| m.promotion.map(|p| p.ascii_char(Player::White)) != promotion
 		{
 			return ops::ControlFlow::Continue(());
 		}

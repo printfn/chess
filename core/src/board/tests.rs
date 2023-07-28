@@ -18,7 +18,7 @@ fn single_thread_perft(board: Board, depth: usize) -> usize {
 	let count = moves
 		.iter()
 		.map(|mov| {
-			let mut board = board.clone();
+			let mut board = board;
 			board.apply_move(*mov);
 			single_thread_perft(board, depth - 1)
 		})
@@ -41,7 +41,7 @@ fn perft(board: Board, depth: usize) -> usize {
 	let count = moves
 		.par_iter()
 		.map(|mov| {
-			let mut board = board.clone();
+			let mut board = board;
 			board.apply_move(*mov);
 			perft(board, depth - 1)
 		})
@@ -94,7 +94,7 @@ fn assert_perft(board: Board, depth: usize, count: usize) {
 		ops::ControlFlow::Continue(())
 	});
 	for mov in moves.iter() {
-		let mut new_board = board.clone();
+		let mut new_board = board;
 		new_board.apply_move(*mov);
 		let subcount = perft(new_board, depth - 1);
 		eprintln!("{}{}: {}", mov.from, mov.to, subcount);

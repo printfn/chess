@@ -1,4 +1,4 @@
-use std::{ops, cmp};
+use std::{cmp, ops};
 
 use crate::{Board, Move, Player};
 
@@ -36,7 +36,7 @@ fn quiesce(board: &Board, mut alpha: i32, beta: i32) -> i32 {
 		if !m.is_capture(board) {
 			return ops::ControlFlow::Continue(());
 		}
-		let mut new_board = board.clone();
+		let mut new_board = *board;
 		new_board.apply_move(m);
 		let score = -quiesce(&new_board, -beta, -alpha);
 		if score >= beta {
@@ -59,7 +59,7 @@ fn zw_search(board: &Board, beta: i32, depth: usize) -> i32 {
 
 	let mut result = beta - 1;
 	board.all_moves(|m| {
-		let mut new_board = board.clone();
+		let mut new_board = *board;
 		new_board.apply_move(m);
 		let score = -zw_search(&new_board, 1 - beta, depth - 1);
 		if score >= beta {
@@ -68,7 +68,7 @@ fn zw_search(board: &Board, beta: i32, depth: usize) -> i32 {
 		}
 		ops::ControlFlow::Continue(())
 	});
-	return result;
+	result
 }
 
 fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
@@ -78,7 +78,7 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 
 	let mut search_pv = true;
 	board.all_moves(|m| {
-		let mut new_board = board.clone();
+		let mut new_board = *board;
 		new_board.apply_move(m);
 
 		let score = if search_pv {
@@ -102,7 +102,7 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 		}
 		ops::ControlFlow::Continue(())
 	});
-	return alpha;
+	alpha
 }
 
 pub fn search(board: &Board, depth: usize) -> Option<Move> {
@@ -115,15 +115,13 @@ pub fn search(board: &Board, depth: usize) -> Option<Move> {
 		ops::ControlFlow::Continue(())
 	});
 	let mut r = picorand::RNG::<picorand::WyRand, u16>::new(0xdeadbeef);
-	moves.sort_unstable_by(|_, _| {
-		match r.generate_range(0, 2) {
-			0 => cmp::Ordering::Greater,
-			1 => cmp::Ordering::Less,
-			_ => unreachable!(),
-		}
+	moves.sort_unstable_by(|_, _| match r.generate_range(0, 2) {
+		0 => cmp::Ordering::Greater,
+		1 => cmp::Ordering::Less,
+		_ => unreachable!(),
 	});
 	for m in moves {
-		let mut new_board = board.clone();
+		let mut new_board = *board;
 		new_board.apply_move(m);
 		let score = -pv_search(&new_board, -beta, -alpha, depth - 1);
 		if score > alpha {

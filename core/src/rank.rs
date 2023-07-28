@@ -81,7 +81,7 @@ impl fmt::Display for Rank {
 
 impl From<Rank> for char {
 	fn from(rank: Rank) -> Self {
-		char::from(rank.value() + '1' as u8)
+		char::from(rank.value() + b'1')
 	}
 }
 

@@ -51,7 +51,7 @@ impl Board {
 			});
 			pos.unwrap()
 		};
-		while let Some(ch) = fen_iter.next() {
+		for ch in fen_iter.by_ref() {
 			match ch {
 				' ' => break,
 				'1'..='8' => {
@@ -78,7 +78,7 @@ impl Board {
 				'-' => {
 					assert_eq!(fen_iter.next().unwrap(), ' ');
 					break;
-				},
+				}
 				'K' => result.white_kingside_castle = true,
 				'Q' => result.white_queenside_castle = true,
 				'k' => result.black_kingside_castle = true,
@@ -201,9 +201,9 @@ impl Board {
 					result.set(target_pos);
 				}
 				if let Some(en_passant_target) = en_passant_target {
-					if pos.offset(capture_dirs[0]) == Some(en_passant_target) {
-						result.set(en_passant_target);
-					} else if pos.offset(capture_dirs[1]) == Some(en_passant_target) {
+					if pos.offset(capture_dirs[0]) == Some(en_passant_target)
+						|| pos.offset(capture_dirs[1]) == Some(en_passant_target)
+					{
 						result.set(en_passant_target);
 					}
 				}
@@ -281,7 +281,7 @@ impl Board {
 			let original_piece = self.getp(pos).unwrap().1;
 			let targets = self.simple_piece_moves(pos, self.en_passant_target);
 			for target in targets {
-				let mut new_board = self.clone();
+				let mut new_board = *self;
 				new_board.setp(pos, None);
 				new_board.setp(target, Some((self.current_player, original_piece)));
 				if new_board.square_in_check(if original_piece == Piece::King {
@@ -305,16 +305,14 @@ impl Board {
 							return;
 						}
 					}
-				} else {
-					if add_move(Move {
-						from: pos,
-						to: target,
-						promotion: None,
-					})
-					.is_break()
-					{
-						return;
-					};
+				} else if add_move(Move {
+					from: pos,
+					to: target,
+					promotion: None,
+				})
+				.is_break()
+				{
+					return;
 				}
 			}
 		}
@@ -339,16 +337,14 @@ impl Board {
 			} && !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::F, rank))
 			&& !self.square_in_check(Pos::new(File::G, rank))
-		{
-			if add_move(Move {
+			&& add_move(Move {
 				from: Pos::new(File::E, rank),
 				to: Pos::new(File::G, rank),
 				promotion: None,
 			})
 			.is_break()
-			{
-				return;
-			};
+		{
+			return;
 		}
 		if queenside_castle
 			&& self.getp(Pos::new(File::D, rank)).is_none()
@@ -360,17 +356,13 @@ impl Board {
 			} && !self.square_in_check(Pos::new(File::E, rank))
 			&& !self.square_in_check(Pos::new(File::D, rank))
 			&& !self.square_in_check(Pos::new(File::C, rank))
-		{
-			if add_move(Move {
+			&& add_move(Move {
 				from: Pos::new(File::E, rank),
 				to: Pos::new(File::C, rank),
 				promotion: None,
 			})
 			.is_break()
-			{
-				return;
-			};
-		}
+		{}
 	}
 
 	pub fn apply_move(&mut self, mov: Move) {
@@ -487,7 +479,7 @@ impl Board {
 
 impl fmt::Display for Board {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "+---+---+---+---+---+---+---+---+\n")?;
+		writeln!(f, "+---+---+---+---+---+---+---+---+")?;
 		for rank in RANKS.iter().copied().rev() {
 			write!(f, "|")?;
 			for file in FILES {

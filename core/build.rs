@@ -133,5 +133,5 @@ fn main() {
 
 	let out_dir = env::var_os("OUT_DIR").unwrap();
 	let dest_path = path::Path::new(&out_dir).join("consts.rs");
-	fs::write(&dest_path, generate_bitboards()).unwrap();
+	fs::write(dest_path, generate_bitboards()).unwrap();
 }
