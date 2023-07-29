@@ -20,8 +20,14 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 	return result;
 }
 
-function calculateMove(fen: string): { from: Key; to: Key; fen: string } {
-	return JSON.parse(calculate_move(fen));
+function calculateMove(
+	fen: string,
+): { from: Key; to: Key; fen: string } | undefined {
+	const out = calculate_move(fen);
+	if (!out) {
+		return;
+	}
+	return JSON.parse(out);
 }
 
 interface Props {
@@ -33,6 +39,7 @@ export function Board({ perspective }: Props) {
 		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	);
 	const [lastMove, setLastMove] = useState<[Key, Key] | undefined>(undefined);
+	const [block, setBlock] = useState(false);
 	const [api, setApi] = useState<Api | null>(null);
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -44,7 +51,7 @@ export function Board({ perspective }: Props) {
 			lastMove: lastMove,
 			movable: {
 				free: false,
-				dests: possibleMoves(fen),
+				dests: block ? new Map() : possibleMoves(fen),
 				events: {
 					after(from, to) {
 						setLastMove([from, to]);
@@ -57,10 +64,19 @@ export function Board({ perspective }: Props) {
 							nextPos = apply_move(fen, from, to, promotion);
 						}
 						setFen(nextPos);
+						setBlock(true);
 						setTimeout(() => {
 							const result = calculateMove(nextPos);
+							if (!result) {
+								alert('Game over!');
+								return;
+							}
+							setBlock(false);
 							setFen(result.fen);
 							setLastMove([result.from, result.to]);
+							if (possibleMoves(result.fen).size === 0) {
+								alert('Game over!');
+							}
 						}, 500);
 					},
 				},
@@ -69,7 +85,7 @@ export function Board({ perspective }: Props) {
 				enabled: true,
 			},
 		}),
-		[fen, perspective, lastMove],
+		[fen, perspective, lastMove, block],
 	);
 
 	useEffect(() => {

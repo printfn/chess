@@ -10,6 +10,9 @@ pub fn valid_moves(fen: &str) -> String {
 		moves.push(format!("[\"{}\", \"{}\"]", m.from, m.to));
 		ops::ControlFlow::Continue(())
 	});
+	if moves.is_empty() {
+		return "".to_string();
+	}
 	format!("[{}]", moves.join(","))
 }
 

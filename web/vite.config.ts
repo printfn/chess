@@ -8,8 +8,8 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				sourcemap: true,
-			}
-		}
+			},
+		},
 	},
 	plugins: [react(), wasm()],
 });
