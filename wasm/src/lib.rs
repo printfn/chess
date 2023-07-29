@@ -1,4 +1,4 @@
-use chess_core::{Board, Player, search};
+use chess_core::{search, Board, Player};
 use std::ops;
 use wasm_bindgen::prelude::*;
 

@@ -4,6 +4,7 @@ import { Config } from 'chessground/config';
 import { File, Key, Rank } from 'chessground/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { valid_moves, apply_move, calculate_move } from '../../wasm/pkg';
+import './chessground/chessground-base.css';
 
 function possibleMoves(fen: string): Map<Key, Key[]> {
 	console.log('getting possible moves for fen', fen);
@@ -33,7 +34,7 @@ export function Board({ perspective }: Props) {
 	const config: Config = useMemo<Config>(
 		() => ({
 			fen: fen,
-			coordinates: true,
+			coordinates: false,
 			orientation: perspective,
 			movable: {
 				free: false,
@@ -70,15 +71,5 @@ export function Board({ perspective }: Props) {
 		}
 	}, [ref, api, config]);
 
-	return (
-		<div
-			ref={ref}
-			style={{
-				height: 'auto',
-				width: '100%',
-				maxWidth: '80vh',
-				aspectRatio: 1,
-			}}
-		/>
-	);
+	return <div ref={ref} />;
 }
