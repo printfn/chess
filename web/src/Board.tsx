@@ -20,6 +20,10 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 	return result;
 }
 
+function calculateMove(fen: string): { from: Key; to: Key; fen: string } {
+	return JSON.parse(calculate_move(fen));
+}
+
 interface Props {
 	perspective: 'white' | 'black';
 }
@@ -28,6 +32,7 @@ export function Board({ perspective }: Props) {
 	const [fen, setFen] = useState(
 		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	);
+	const [lastMove, setLastMove] = useState<[Key, Key] | undefined>(undefined);
 	const [api, setApi] = useState<Api | null>(null);
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -36,12 +41,13 @@ export function Board({ perspective }: Props) {
 			fen: fen,
 			coordinates: false,
 			orientation: perspective,
-			lastMove: undefined,
+			lastMove: lastMove,
 			movable: {
 				free: false,
 				dests: possibleMoves(fen),
 				events: {
 					after(from, to) {
+						setLastMove([from, to]);
 						let nextPos = apply_move(fen, from, to);
 						if (!nextPos) {
 							let promotion = '?';
@@ -52,7 +58,9 @@ export function Board({ perspective }: Props) {
 						}
 						setFen(nextPos);
 						setTimeout(() => {
-							setFen(calculate_move(nextPos));
+							const result = calculateMove(nextPos);
+							setFen(result.fen);
+							setLastMove([result.from, result.to]);
 						}, 500);
 					},
 				},
@@ -61,7 +69,7 @@ export function Board({ perspective }: Props) {
 				enabled: true,
 			},
 		}),
-		[fen, perspective],
+		[fen, perspective, lastMove],
 	);
 
 	useEffect(() => {

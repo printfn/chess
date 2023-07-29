@@ -42,5 +42,13 @@ pub fn calculate_move(fen: &str) -> String {
 		return "".to_string();
 	};
 	board.apply_move(mov);
-	board.to_fen()
+	let fen = board.to_fen();
+	format!(
+		r#"{{
+		"from": "{}",
+		"to": "{}",
+		"fen": "{fen}"
+	}}"#,
+		mov.from, mov.to,
+	)
 }
