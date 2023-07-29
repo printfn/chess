@@ -119,7 +119,7 @@ pub fn search(board: &Board, depth: usize, random_u32: fn() -> u32) -> Option<Mo
 	if moves.len() == 1 {
 		return Some(moves[0]);
 	}
-	moves.sort_unstable_by_key(|_| random_u32());
+	moves.sort_by_cached_key(|_| random_u32());
 	let mut best_move = moves[0];
 	for m in moves.into_iter().skip(1) {
 		let mut new_board = *board;
