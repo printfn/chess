@@ -175,7 +175,7 @@ piece.fading {
 
 /** Colored board squares */
 cg-board {
-	background-image: url(images/board-pink.svg);
+	background-image: url(images/board.svg);
 }
 
 /** Interactive board square colors */

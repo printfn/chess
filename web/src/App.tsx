@@ -15,7 +15,7 @@ function App() {
 			<div className="row justify-content-center">
 				<div className="col board-column">
 					<button
-						className="btn btn-outline-secondary"
+						className="btn btn-outline-primary"
 						onClick={() => setPerspective(!perspective)}
 					>
 						Flip Board
