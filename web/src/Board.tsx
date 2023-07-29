@@ -3,8 +3,11 @@ import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
 import { File, Key, Rank } from 'chessground/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { valid_moves, apply_move, calculate_move } from '../../wasm/pkg';
+import { default as initWasm, valid_moves, apply_move } from '../../wasm/pkg';
 import './chessground/chessground-base.css';
+import MyWorker from './calculateMove?worker';
+
+await initWasm();
 
 function possibleMoves(fen: string): Map<Key, Key[]> {
 	console.log('getting possible moves for fen', fen);
@@ -20,16 +23,6 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 	return result;
 }
 
-function calculateMove(
-	fen: string,
-): { from: Key; to: Key; fen: string } | undefined {
-	const out = calculate_move(fen);
-	if (!out) {
-		return;
-	}
-	return JSON.parse(out);
-}
-
 interface Props {
 	perspective: 'white' | 'black';
 }
@@ -38,6 +31,7 @@ export function Board({ perspective }: Props) {
 	const [fen, setFen] = useState(
 		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	);
+	const [, setWorker] = useState<Worker | null>(null);
 	const [lastMove, setLastMove] = useState<[Key, Key] | undefined>(undefined);
 	const [block, setBlock] = useState(false);
 	const [api, setApi] = useState<Api | null>(null);
@@ -66,17 +60,29 @@ export function Board({ perspective }: Props) {
 						setFen(nextPos);
 						setBlock(true);
 						setTimeout(() => {
-							const result = calculateMove(nextPos);
-							if (!result) {
-								alert('Game over!');
-								return;
-							}
-							setBlock(false);
-							setFen(result.fen);
-							setLastMove([result.from, result.to]);
-							if (possibleMoves(result.fen).size === 0) {
-								alert('Game over!');
-							}
+							const w = new MyWorker();
+							w.onmessage = e => {
+								setWorker(null);
+								if (!e.data) {
+									alert('Game over!');
+									return;
+								}
+								const result: { from: Key; to: Key; fen: string } = JSON.parse(
+									e.data,
+								);
+								setBlock(false);
+								setFen(result.fen);
+								setLastMove([result.from, result.to]);
+								if (possibleMoves(result.fen).size === 0) {
+									alert('Game over!');
+								}
+							};
+							w.onerror = e => {
+								setWorker(null);
+								console.error(e);
+							};
+							w.postMessage(nextPos);
+							setWorker(w);
 						}, 500);
 					},
 				},

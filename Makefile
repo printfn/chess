@@ -1,7 +1,7 @@
 .PHONY: web fix
 
 web:
-	cd wasm && wasm-pack build --release
+	cd wasm && wasm-pack build --release --target web
 	cd web && yarn && yarn build
 
 fix:

@@ -1,5 +1,4 @@
-import { defineConfig } from 'vite';
-import wasm from 'vite-plugin-wasm';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 
 export default defineConfig({
@@ -11,5 +10,10 @@ export default defineConfig({
 			},
 		},
 	},
-	plugins: [react(), wasm()],
+	server: {
+		fs: {
+			allow: [searchForWorkspaceRoot(process.cwd()), '../wasm/pkg/'],
+		},
+	},
+	plugins: [react()],
 });
