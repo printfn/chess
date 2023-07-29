@@ -1,4 +1,4 @@
-import {default as initWasm, calculate_move} from '../../wasm/pkg';
+import { default as initWasm, calculate_move } from '../../wasm/pkg';
 
 self.addEventListener('message', ({ data }) => {
 	initWasm().then(() => {
