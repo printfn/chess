@@ -1,4 +1,4 @@
-use std::{cmp, ops};
+use std::ops;
 
 use crate::{Board, Move, Player};
 
@@ -106,7 +106,6 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 }
 
 pub fn search(board: &Board, depth: usize) -> Option<Move> {
-	let mut best_move = None;
 	let mut alpha = -10000;
 	let beta = 10000;
 	let mut moves = vec![];
@@ -114,20 +113,44 @@ pub fn search(board: &Board, depth: usize) -> Option<Move> {
 		moves.push(m);
 		ops::ControlFlow::Continue(())
 	});
+	if moves.is_empty() {
+		return None;
+	}
+	if moves.len() == 1 {
+		return Some(moves[0]);
+	}
 	let mut r = picorand::RNG::<picorand::WyRand, u16>::new(0xdeadbeef);
-	moves.sort_unstable_by(|_, _| match r.generate_range(0, 2) {
-		0 => cmp::Ordering::Greater,
-		1 => cmp::Ordering::Less,
-		_ => unreachable!(),
-	});
-	for m in moves {
+	moves.sort_unstable_by_key(|_| r.generate_range(0, usize::MAX));
+	let mut best_move = moves[0];
+	for m in moves.into_iter().skip(1) {
 		let mut new_board = *board;
 		new_board.apply_move(m);
 		let score = -pv_search(&new_board, -beta, -alpha, depth - 1);
 		if score > alpha {
 			alpha = score;
-			best_move = Some(m);
+			best_move = m;
 		}
 	}
-	best_move
+	Some(best_move)
+}
+
+#[cfg(test)]
+mod tests {
+	use crate::{search, Board};
+	use std::ops;
+
+	#[test]
+	fn only_one_move() {
+		let mut board =
+			Board::from_fen("rnbq1bnr/1pppk1pp/p2Pp3/4P1pQ/2B1N3/8/PPP2PPP/R3K1NR b KQ -");
+		let mut moves = vec![];
+		board.all_moves(|m| {
+			moves.push(m);
+			ops::ControlFlow::Continue(())
+		});
+		eprintln!("{moves:?}");
+		let m = search(&board, 3).unwrap();
+		assert_eq!(m.format(board, moves.as_slice()).to_string(), "cxd6");
+		board.apply_move(m);
+	}
 }
