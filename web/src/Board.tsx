@@ -36,6 +36,7 @@ export function Board({ perspective }: Props) {
 			fen: fen,
 			coordinates: false,
 			orientation: perspective,
+			lastMove: undefined,
 			movable: {
 				free: false,
 				dests: possibleMoves(fen),
