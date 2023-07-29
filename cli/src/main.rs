@@ -1,6 +1,11 @@
 use chess_core::{search, Board};
 use std::{io::Write, ops};
 
+fn random_u32() -> u32 {
+	let mut rng = nanorand::WyRand::new();
+	nanorand::Rng::generate(&mut rng)
+}
+
 fn main() {
 	let mut board = Board::initial_position();
 	let mut moves = vec![];
@@ -28,7 +33,7 @@ fn main() {
 			let input = input.parse::<usize>();
 			if let Ok(input) = input {
 				if input == 0 {
-					break search(&board, 5).expect("Expected to find a move");
+					break search(&board, 5, random_u32).expect("Expected to find a move");
 				} else if input <= moves.len() {
 					break moves[input - 1];
 				}

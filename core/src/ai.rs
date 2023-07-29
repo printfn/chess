@@ -105,7 +105,7 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 	alpha
 }
 
-pub fn search(board: &Board, depth: usize) -> Option<Move> {
+pub fn search(board: &Board, depth: usize, random_u32: fn() -> u32) -> Option<Move> {
 	let mut alpha = -10000;
 	let beta = 10000;
 	let mut moves = vec![];
@@ -119,8 +119,7 @@ pub fn search(board: &Board, depth: usize) -> Option<Move> {
 	if moves.len() == 1 {
 		return Some(moves[0]);
 	}
-	let mut r = picorand::RNG::<picorand::WyRand, u16>::new(0xdeadbeef);
-	moves.sort_unstable_by_key(|_| r.generate_range(0, usize::MAX));
+	moves.sort_unstable_by_key(|_| random_u32());
 	let mut best_move = moves[0];
 	for m in moves.into_iter().skip(1) {
 		let mut new_board = *board;
@@ -149,7 +148,7 @@ mod tests {
 			ops::ControlFlow::Continue(())
 		});
 		eprintln!("{moves:?}");
-		let m = search(&board, 3).unwrap();
+		let m = search(&board, 3, || 0).unwrap();
 		assert_eq!(m.format(board, moves.as_slice()).to_string(), "cxd6");
 		board.apply_move(m);
 	}

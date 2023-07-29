@@ -34,10 +34,15 @@ pub fn apply_move(fen: &str, from: &str, to: &str, promotion: Option<char>) -> S
 	board.to_fen()
 }
 
+fn random_u32() -> u32 {
+	let random_f64 = js_sys::Math::random();
+	(random_f64 * f64::from(u32::MAX)) as u32
+}
+
 #[wasm_bindgen]
 pub fn calculate_move(fen: &str) -> String {
 	let mut board = Board::from_fen(fen);
-	let mov = search(&board, 3);
+	let mov = search(&board, 3, random_u32);
 	let Some(mov) = mov else {
 		return "".to_string();
 	};
