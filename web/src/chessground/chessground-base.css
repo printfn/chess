@@ -175,7 +175,7 @@ piece.fading {
 
 /** Colored board squares */
 cg-board {
-	background-image: url(images/board-brown.svg);
+	background-image: url(images/board-pink.svg);
 }
 
 /** Interactive board square colors */
@@ -210,16 +210,16 @@ cg-board square.oc.premove-dest {
 	);
 }
 cg-board square.move-dest:hover {
-	background: #adb8ee;
+	background: #adb8eeaa;
 }
 cg-board square.premove-dest:hover {
-	background: #adb8ee;
+	background: #adb8eeaa;
 }
 cg-board square.last-move {
-	background-color: #adb8ee;
+	background-color: #adb8eeaa;
 }
 cg-board square.selected {
-	background-color: #adb8ee;
+	background-color: #adb8eeaa;
 }
 cg-board square.check {
 	background: radial-gradient(
