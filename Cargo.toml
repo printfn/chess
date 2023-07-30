@@ -1,2 +1,5 @@
 [workspace]
 members = ["core", "cli", "wasm"]
+
+[profile.release]
+debug = true

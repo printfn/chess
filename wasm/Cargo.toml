@@ -12,3 +12,4 @@ crate-type = ["cdylib", "rlib"]
 wasm-bindgen = "0.2.87"
 chess-core = { path = "../core" }
 js-sys = "0.3.64"
+console_error_panic_hook = "0.1.7"

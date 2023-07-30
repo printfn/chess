@@ -3,13 +3,14 @@ import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
 import { File, Key, Rank } from 'chessground/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { default as initWasm, valid_moves, apply_move } from '../../wasm/pkg';
+import { default as initWasm, valid_moves, apply_move, init_panic_hook } from '../../wasm/pkg';
 import './chessground/chessground-base.css';
 import MyWorker from './calculateMove?worker';
 import { Modal } from 'bootstrap';
 import { PromotionPiece } from './lib/types';
 
 await initWasm();
+init_panic_hook();
 
 function possibleMoves(fen: string): Map<Key, Key[]> {
 	console.log('getting possible moves for fen', fen);
