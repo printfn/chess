@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Board } from './Board';
-import { Settings } from './Settings';
+import { Settings } from './modals/Settings';
 import { initialTheme } from './lib/theme';
-import { GameOver } from './GameOver';
+import { GameOver } from './modals/GameOver';
 
 function App() {
 	const [theme, setTheme] = useState(initialTheme());

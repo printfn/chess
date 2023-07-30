@@ -1,5 +1,5 @@
 import React from 'react';
-import { Theme, themes } from './lib/theme';
+import { Theme, themes } from '../lib/theme';
 
 export function Settings({
 	id,
