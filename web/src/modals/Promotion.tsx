@@ -34,12 +34,6 @@ export function Promotion({ id, onHide }: Props) {
 				<div className="modal-content">
 					<div className="modal-header">
 						<h5 className="modal-title">Promotion</h5>
-						<button
-							type="button"
-							className="btn-close"
-							data-bs-dismiss="modal"
-							aria-label="Close"
-						></button>
 					</div>
 					<div className="modal-body">
 						<label htmlFor="theme-select-input" className="form-label">
