@@ -2,8 +2,8 @@
 @import 'bootstrap/scss/variables';
 
 $custom-colors: (
-  "pink": #cc5299,
-  "brown": #a67c52,
+	'pink': #cc5299,
+	'brown': #a67c52,
 );
 
 $theme-colors: map-merge($theme-colors, $custom-colors);
@@ -20,7 +20,8 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 		}
 		.form-select:focus {
 			border-color: tint-color($value, 50%);
-			box-shadow: 0 0 $focus-ring-blur $focus-ring-width rgba($value, $focus-ring-opacity);
+			box-shadow: 0 0 $focus-ring-blur $focus-ring-width
+				rgba($value, $focus-ring-opacity);
 		}
 	}
 }

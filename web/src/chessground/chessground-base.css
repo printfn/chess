@@ -174,10 +174,10 @@ piece.fading {
 }
 
 /** Colored board squares */
-[data-bs-theme="pink"] cg-board {
+[data-bs-theme='pink'] cg-board {
 	background-image: url(images/board-pink.svg);
 }
-[data-bs-theme="brown"] cg-board {
+[data-bs-theme='brown'] cg-board {
 	background-image: url(images/board-brown.svg);
 }
 
