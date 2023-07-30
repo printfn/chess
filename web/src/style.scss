@@ -1,9 +1,11 @@
 $primary: #cc5299;
-
 @import 'bootstrap/scss/bootstrap';
 
-body {
+body.pink {
 	background-color: #faf2f7;
+}
+body.brown {
+	background-color: #faf6f2;
 }
 
 .board-column {

@@ -174,8 +174,11 @@ piece.fading {
 }
 
 /** Colored board squares */
-cg-board {
-	background-image: url(images/board.svg);
+.pink cg-board {
+	background-image: url(images/board-pink.svg);
+}
+.brown cg-board {
+	background-image: url(images/board-brown.svg);
 }
 
 /** Interactive board square colors */

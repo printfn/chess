@@ -102,5 +102,5 @@ export function Board({ perspective }: Props) {
 		}
 	}, [ref, api, config]);
 
-	return <div className="ratio ratio-1x1" ref={ref} />;
+	return <div className={`ratio ratio-1x1`} ref={ref} />;
 }
