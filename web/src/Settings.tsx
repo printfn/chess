@@ -37,7 +37,7 @@ export function Settings({
 						<select
 							id="theme-select-input"
 							className="form-select"
-							aria-label="Default select example"
+							aria-label="Choose a theme"
 							value={theme}
 							onChange={onChange}
 						>
