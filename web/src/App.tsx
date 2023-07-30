@@ -7,10 +7,7 @@ function App() {
 	const [theme, setTheme] = useState(initialTheme());
 	useEffect(() => {
 		localStorage.setItem('theme', theme);
-		document.body.classList.add(theme);
-		return () => {
-			document.body.classList.remove(theme);
-		};
+		document.documentElement.setAttribute('data-bs-theme', theme);
 	}, [theme]);
 	const [perspective, setPerspective] = useState(true);
 

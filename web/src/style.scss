@@ -1,10 +1,10 @@
 $primary: #cc5299;
 @import 'bootstrap/scss/bootstrap';
 
-body.pink {
+[data-bs-theme="pink"] body {
 	background-color: #faf2f7;
 }
-body.brown {
+[data-bs-theme="brown"] body {
 	background-color: #faf6f2;
 }
 
