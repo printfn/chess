@@ -106,8 +106,6 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 }
 
 pub fn search(board: &Board, depth: usize, random_u32: fn() -> u32) -> Option<Move> {
-	let mut alpha = -10000;
-	let beta = 10000;
 	let mut moves = vec![];
 	board.all_moves(|m| {
 		moves.push(m);
@@ -120,6 +118,12 @@ pub fn search(board: &Board, depth: usize, random_u32: fn() -> u32) -> Option<Mo
 		return Some(moves[0]);
 	}
 	moves.sort_by_cached_key(|_| random_u32());
+	let mut alpha = {
+		let mut new_board = *board;
+		new_board.apply_move(moves[0]);
+		-pv_search(&new_board, -10000, 10000, depth - 1)
+	};
+	let beta = 10000;
 	let mut best_move = moves[0];
 	for m in moves.into_iter().skip(1) {
 		let mut new_board = *board;
