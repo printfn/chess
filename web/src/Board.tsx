@@ -7,6 +7,7 @@ import { default as initWasm, valid_moves, apply_move } from '../../wasm/pkg';
 import './chessground/chessground-base.css';
 import MyWorker from './calculateMove?worker';
 import { Modal } from 'bootstrap';
+import { PromotionPiece } from './lib/types';
 
 await initWasm();
 
@@ -26,9 +27,10 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 
 interface Props {
 	perspective: 'white' | 'black';
+	promote: () => Promise<PromotionPiece>;
 }
 
-export function Board({ perspective }: Props) {
+export function Board({ perspective, promote }: Props) {
 	const [fen, setFen] = useState(
 		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	);
@@ -48,14 +50,11 @@ export function Board({ perspective }: Props) {
 				free: false,
 				dests: block ? new Map() : possibleMoves(fen),
 				events: {
-					after(from, to) {
+					after: async (from, to) => {
 						setLastMove([from, to]);
 						let nextPos = apply_move(fen, from, to);
 						if (!nextPos) {
-							let promotion = '?';
-							while (!['Q', 'R', 'B', 'N'].includes(promotion)) {
-								promotion = prompt('Promotion (Q, R, B, N)', 'Q') ?? '?';
-							}
+							const promotion = await promote();
 							nextPos = apply_move(fen, from, to, promotion);
 						}
 						setFen(nextPos);
@@ -92,7 +91,7 @@ export function Board({ perspective }: Props) {
 				enabled: true,
 			},
 		}),
-		[fen, perspective, lastMove, block],
+		[fen, perspective, lastMove, block, promote],
 	);
 
 	useEffect(() => {

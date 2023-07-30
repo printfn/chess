@@ -15,6 +15,9 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 		body {
 			background-color: tint-color($value, 92.5%);
 		}
+		.btn-primary {
+			@include button-variant($value, $value);
+		}
 		.btn-outline-primary {
 			@include button-outline-variant($value);
 		}
