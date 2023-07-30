@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { default as initWasm, valid_moves, apply_move } from '../../wasm/pkg';
 import './chessground/chessground-base.css';
 import MyWorker from './calculateMove?worker';
+import { Modal } from 'bootstrap';
 
 await initWasm();
 
@@ -64,7 +65,7 @@ export function Board({ perspective }: Props) {
 							w.onmessage = e => {
 								setWorker(null);
 								if (!e.data) {
-									alert('Game over!');
+									new Modal(document.getElementById('game-over-modal')!).show();
 									return;
 								}
 								const result: { from: Key; to: Key; fen: string } = JSON.parse(
@@ -74,7 +75,7 @@ export function Board({ perspective }: Props) {
 								setFen(result.fen);
 								setLastMove([result.from, result.to]);
 								if (possibleMoves(result.fen).size === 0) {
-									alert('Game over!');
+									new Modal(document.getElementById('game-over-modal')!).show();
 								}
 							};
 							w.onerror = e => {

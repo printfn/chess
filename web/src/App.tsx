@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Board } from './Board';
 import { Settings } from './Settings';
 import { initialTheme } from './lib/theme';
+import { GameOver } from './GameOver';
 
 function App() {
 	const [theme, setTheme] = useState(initialTheme());
@@ -14,6 +15,7 @@ function App() {
 	return (
 		<>
 			<Settings id="settings-modal" theme={theme} setTheme={setTheme} />
+			<GameOver id="game-over-modal" />
 			<div className="container">
 				<div className="row justify-content-center p-2">
 					<div className="col board-column text-center">
