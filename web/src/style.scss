@@ -1,11 +1,28 @@
-$primary: #cc5299;
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+
+$custom-colors: (
+  "pink": #cc5299,
+  "brown": #a67c52,
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
 @import 'bootstrap/scss/bootstrap';
 
-[data-bs-theme="pink"] body {
-	background-color: #faf2f7;
-}
-[data-bs-theme="brown"] body {
-	background-color: #faf6f2;
+@each $name, $value in $theme-colors {
+	@include color-mode($name) {
+		body {
+			background-color: tint-color($value, 92.5%);
+		}
+		.btn-outline-primary {
+			@include button-outline-variant($value);
+		}
+		.form-select:focus {
+			border-color: tint-color($value, 50%);
+			box-shadow: 0 0 $focus-ring-blur $focus-ring-width rgba($value, $focus-ring-opacity);
+		}
+	}
 }
 
 .board-column {
