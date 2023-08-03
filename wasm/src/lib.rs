@@ -2,15 +2,41 @@ use chess_core::{search, Board, Player};
 use std::ops;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-pub fn valid_moves(fen: &str) -> String {
+#[wasm_bindgen(typescript_custom_section)]
+const ITEXT_STYLE: &'static str = r#"
+type File = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
+type Rank = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
+type Square = `${File}${Rank}`;
+
+type GameState = {
+	moves: {
+		from: Square,
+		to: Square,
+	}[]
+}
+
+export function game_state(fen: string): GameState;
+"#;
+
+#[wasm_bindgen(skip_typescript)]
+pub fn game_state(fen: &str) -> JsValue {
 	let board = Board::from_fen(fen);
-	let mut moves = vec![];
+	let moves = js_sys::Array::new();
 	board.all_moves(|m| {
-		moves.push(format!("[\"{}\", \"{}\"]", m.from, m.to));
+		let mov = js_sys::Object::new();
+		js_sys::Reflect::set(
+			&mov,
+			&JsValue::from("from"),
+			&JsValue::from(m.from.to_string()),
+		)
+		.unwrap();
+		js_sys::Reflect::set(&mov, &JsValue::from("to"), &JsValue::from(m.to.to_string())).unwrap();
+		moves.push(&mov);
 		ops::ControlFlow::Continue(())
 	});
-	format!("[{}]", moves.join(","))
+	let result = js_sys::Object::new();
+	js_sys::Reflect::set(&result, &JsValue::from("moves"), &moves).unwrap();
+	result.into()
 }
 
 #[wasm_bindgen]
@@ -60,5 +86,5 @@ pub fn calculate_move(fen: &str) -> String {
 
 #[wasm_bindgen]
 pub fn init_panic_hook() {
-    console_error_panic_hook::set_once();
+	console_error_panic_hook::set_once();
 }

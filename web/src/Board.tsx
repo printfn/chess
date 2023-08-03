@@ -1,9 +1,14 @@
 import { Chessground } from 'chessground';
 import { Api } from 'chessground/api';
 import { Config } from 'chessground/config';
-import { File, Key, Rank } from 'chessground/types';
+import { Key } from 'chessground/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { default as initWasm, valid_moves, apply_move, init_panic_hook } from '../../wasm/pkg';
+import {
+	default as initWasm,
+	game_state,
+	apply_move,
+	init_panic_hook,
+} from '../../wasm/pkg';
 import './chessground/chessground-base.css';
 import MyWorker from './calculateMove?worker';
 import { Modal } from 'bootstrap';
@@ -14,9 +19,9 @@ init_panic_hook();
 
 function possibleMoves(fen: string): Map<Key, Key[]> {
 	console.log('getting possible moves for fen', fen);
-	const moves: `${File}${Rank}`[][] = JSON.parse(valid_moves(fen));
+	const gameState = game_state(fen);
 	const result: Map<Key, Key[]> = new Map();
-	for (const [from, to] of moves) {
+	for (const { from, to } of gameState.moves) {
 		if (result.has(from)) {
 			result.get(from)!.push(to);
 		} else {
