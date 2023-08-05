@@ -130,43 +130,45 @@ export function Board({ promote }: Props) {
 	};
 
 	return (
-		<>
-			<div className="text-center mb-2">
-				<div className="ratio ratio-1x1" ref={ref} />
+		<div className="row justify-content-center">
+			<div className="col board-column">
+				<div className="mb-2">
+					<div className="ratio ratio-1x1" ref={ref} />
+				</div>
+				<div className="d-grid gap-2 mb-2">
+					<button
+						className="btn btn-outline-primary"
+						onClick={() => setPerspective(!perspective)}
+					>
+						Flip Board
+					</button>
+					<button
+						className="btn btn-outline-primary"
+						data-bs-toggle="modal"
+						data-bs-target="#settings-modal"
+					>
+						Settings
+					</button>
+					<button
+						className="btn btn-outline-primary"
+						onClick={() => newGame('white')}
+					>
+						New Game (White)
+					</button>
+					<button
+						className="btn btn-outline-primary"
+						onClick={() => newGame('black')}
+					>
+						New Game (Black)
+					</button>
+					<button
+						className="btn btn-outline-primary"
+						onClick={() => newGame('random')}
+					>
+						New Game (Random)
+					</button>
+				</div>
 			</div>
-			<div className="d-inline-flex gap-1">
-				<button
-					className="btn btn-outline-primary"
-					onClick={() => setPerspective(!perspective)}
-				>
-					Flip Board
-				</button>
-				<button
-					className="btn btn-outline-primary"
-					data-bs-toggle="modal"
-					data-bs-target="#settings-modal"
-				>
-					Settings
-				</button>
-				<button
-					className="btn btn-outline-primary"
-					onClick={() => newGame('white')}
-				>
-					New Game (White)
-				</button>
-				<button
-					className="btn btn-outline-primary"
-					onClick={() => newGame('black')}
-				>
-					New Game (Black)
-				</button>
-				<button
-					className="btn btn-outline-primary"
-					onClick={() => newGame('random')}
-				>
-					New Game (Random)
-				</button>
-			</div>
-		</>
+		</div>
 	);
 }

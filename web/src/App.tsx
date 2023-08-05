@@ -25,18 +25,18 @@ function App() {
 			/>
 			<div className="container">
 				<div className="row justify-content-center">
-					<div className="col board-column">
+					<div className="col">
 						<h1 className="text-center">Chess</h1>
-						<Board
-							promote={() => {
-								return new Promise(resolve => {
-									new Modal(document.getElementById('promotion-modal')!).show();
-									resolvePromise.current = resolve;
-								});
-							}}
-						/>
 					</div>
 				</div>
+				<Board
+					promote={() => {
+						return new Promise(resolve => {
+							new Modal(document.getElementById('promotion-modal')!).show();
+							resolvePromise.current = resolve;
+						});
+					}}
+				/>
 			</div>
 		</>
 	);
