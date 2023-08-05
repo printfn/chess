@@ -17,6 +17,9 @@ import { PromotionPiece } from './lib/types';
 await initWasm();
 init_panic_hook();
 
+const INITIAL_POSITION =
+	'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
 function possibleMoves(fen: string): Map<Key, Key[]> {
 	console.log('getting possible moves for fen', fen);
 	const gameState = game_state(fen);
@@ -35,12 +38,27 @@ interface Props {
 	promote: () => Promise<PromotionPiece>;
 }
 
+type CalculateMoveResult = { from: Key; to: Key; fen: string };
+function calculateMove(fen: string): Promise<CalculateMoveResult> {
+	return new Promise((resolve, reject) => {
+		setTimeout(() => {
+			const w = new MyWorker();
+			w.onmessage = e => {
+				const result: { from: Key; to: Key; fen: string } = JSON.parse(e.data);
+				resolve(result);
+			};
+			w.onerror = e => {
+				console.error(e);
+				reject(e);
+			};
+			w.postMessage(fen);
+		}, 500);
+	});
+}
+
 export function Board({ promote }: Props) {
-	const [fen, setFen] = useState(
-		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-	);
+	const [fen, setFen] = useState(INITIAL_POSITION);
 	const [perspective, setPerspective] = useState(true);
-	const [, setWorker] = useState<Worker | null>(null);
 	const [lastMove, setLastMove] = useState<[Key, Key] | undefined>(undefined);
 	const [block, setBlock] = useState(false);
 	const [api, setApi] = useState<Api | null>(null);
@@ -65,31 +83,18 @@ export function Board({ promote }: Props) {
 						}
 						setFen(nextPos);
 						setBlock(true);
-						setTimeout(() => {
-							const w = new MyWorker();
-							w.onmessage = e => {
-								setWorker(null);
-								if (!e.data) {
-									new Modal(document.getElementById('game-over-modal')!).show();
-									return;
-								}
-								const result: { from: Key; to: Key; fen: string } = JSON.parse(
-									e.data,
-								);
-								setBlock(false);
-								setFen(result.fen);
-								setLastMove([result.from, result.to]);
-								if (possibleMoves(result.fen).size === 0) {
-									new Modal(document.getElementById('game-over-modal')!).show();
-								}
-							};
-							w.onerror = e => {
-								setWorker(null);
-								console.error(e);
-							};
-							w.postMessage(nextPos);
-							setWorker(w);
-						}, 500);
+						if (possibleMoves(nextPos).size === 0) {
+							new Modal(document.getElementById('game-over-modal')!).show();
+							return;
+						}
+						const result = await calculateMove(nextPos);
+						setFen(result.fen);
+						setLastMove([result.from, result.to]);
+						if (possibleMoves(result.fen).size === 0) {
+							new Modal(document.getElementById('game-over-modal')!).show();
+							return;
+						}
+						setBlock(false);
 					},
 				},
 			},
@@ -107,6 +112,22 @@ export function Board({ promote }: Props) {
 			api.set(config);
 		}
 	}, [ref, api, config]);
+
+	const newGame = async (color: 'white' | 'black' | 'random') => {
+		if (color === 'random') {
+			color = Math.random() > 0.5 ? 'white' : 'black';
+		}
+		setFen(INITIAL_POSITION);
+		setLastMove(undefined);
+		setPerspective(color === 'white');
+		setLastMove(undefined);
+		setBlock(false);
+		if (color === 'black') {
+			const result = await calculateMove(INITIAL_POSITION);
+			setFen(result.fen);
+			setLastMove([result.from, result.to]);
+		}
+	};
 
 	return (
 		<>
@@ -126,6 +147,24 @@ export function Board({ promote }: Props) {
 					data-bs-target="#settings-modal"
 				>
 					Settings
+				</button>
+				<button
+					className="btn btn-outline-primary"
+					onClick={() => newGame('white')}
+				>
+					New Game (White)
+				</button>
+				<button
+					className="btn btn-outline-primary"
+					onClick={() => newGame('black')}
+				>
+					New Game (Black)
+				</button>
+				<button
+					className="btn btn-outline-primary"
+					onClick={() => newGame('random')}
+				>
+					New Game (Random)
 				</button>
 			</div>
 		</>
