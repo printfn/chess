@@ -25,23 +25,23 @@ function App() {
 				onHide={piece => resolvePromise.current?.(piece)}
 			/>
 			<div className="container">
-				<div className="row justify-content-center p-2">
-					<div className="col board-column text-center">
-						<h1>Chess</h1>
-						<Board
-							perspective={perspective ? 'white' : 'black'}
-							promote={() => {
-								return new Promise(resolve => {
-									new Modal(document.getElementById('promotion-modal')!).show();
-									resolvePromise.current = resolve;
-								});
-							}}
-						/>
-					</div>
-				</div>
 				<div className="row justify-content-center">
 					<div className="col board-column">
-						<p className="d-inline-flex gap-1">
+						<h1 className="text-center">Chess</h1>
+						<div className="text-center mb-2">
+							<Board
+								perspective={perspective ? 'white' : 'black'}
+								promote={() => {
+									return new Promise(resolve => {
+										new Modal(
+											document.getElementById('promotion-modal')!,
+										).show();
+										resolvePromise.current = resolve;
+									});
+								}}
+							/>
+						</div>
+						<div className="d-inline-flex gap-1">
 							<button
 								className="btn btn-outline-primary"
 								onClick={() => setPerspective(!perspective)}
@@ -55,7 +55,7 @@ function App() {
 							>
 								Settings
 							</button>
-						</p>
+						</div>
 					</div>
 				</div>
 			</div>

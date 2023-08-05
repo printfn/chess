@@ -61,12 +61,7 @@ fn random_u32() -> u32 {
 }
 
 fn set(target: &JsValue, property_key: &str, value: impl Into<JsValue>) {
-	js_sys::Reflect::set(
-		target,
-		&JsValue::from(property_key),
-		&value.into(),
-	)
-	.unwrap();
+	js_sys::Reflect::set(target, &JsValue::from(property_key), &value.into()).unwrap();
 }
 
 #[wasm_bindgen]
