@@ -13,7 +13,6 @@ function App() {
 		localStorage.setItem('theme', theme);
 		document.documentElement.setAttribute('data-bs-theme', theme);
 	}, [theme]);
-	const [perspective, setPerspective] = useState(true);
 	const resolvePromise = useRef<((piece: PromotionPiece) => void) | null>(null);
 
 	return (
@@ -28,34 +27,14 @@ function App() {
 				<div className="row justify-content-center">
 					<div className="col board-column">
 						<h1 className="text-center">Chess</h1>
-						<div className="text-center mb-2">
-							<Board
-								perspective={perspective ? 'white' : 'black'}
-								promote={() => {
-									return new Promise(resolve => {
-										new Modal(
-											document.getElementById('promotion-modal')!,
-										).show();
-										resolvePromise.current = resolve;
-									});
-								}}
-							/>
-						</div>
-						<div className="d-inline-flex gap-1">
-							<button
-								className="btn btn-outline-primary"
-								onClick={() => setPerspective(!perspective)}
-							>
-								Flip Board
-							</button>
-							<button
-								className="btn btn-outline-primary"
-								data-bs-toggle="modal"
-								data-bs-target="#settings-modal"
-							>
-								Settings
-							</button>
-						</div>
+						<Board
+							promote={() => {
+								return new Promise(resolve => {
+									new Modal(document.getElementById('promotion-modal')!).show();
+									resolvePromise.current = resolve;
+								});
+							}}
+						/>
 					</div>
 				</div>
 			</div>

@@ -32,14 +32,14 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 }
 
 interface Props {
-	perspective: 'white' | 'black';
 	promote: () => Promise<PromotionPiece>;
 }
 
-export function Board({ perspective, promote }: Props) {
+export function Board({ promote }: Props) {
 	const [fen, setFen] = useState(
 		'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
 	);
+	const [perspective, setPerspective] = useState(true);
 	const [, setWorker] = useState<Worker | null>(null);
 	const [lastMove, setLastMove] = useState<[Key, Key] | undefined>(undefined);
 	const [block, setBlock] = useState(false);
@@ -50,7 +50,7 @@ export function Board({ perspective, promote }: Props) {
 		() => ({
 			fen: fen,
 			coordinates: false,
-			orientation: perspective,
+			orientation: perspective ? 'white' : 'black',
 			lastMove: lastMove,
 			movable: {
 				free: false,
@@ -108,5 +108,26 @@ export function Board({ perspective, promote }: Props) {
 		}
 	}, [ref, api, config]);
 
-	return <div className="ratio ratio-1x1" ref={ref} />;
+	return (
+		<>
+			<div className="text-center mb-2">
+				<div className="ratio ratio-1x1" ref={ref} />
+			</div>
+			<div className="d-inline-flex gap-1">
+				<button
+					className="btn btn-outline-primary"
+					onClick={() => setPerspective(!perspective)}
+				>
+					Flip Board
+				</button>
+				<button
+					className="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#settings-modal"
+				>
+					Settings
+				</button>
+			</div>
+		</>
+	);
 }
