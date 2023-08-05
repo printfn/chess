@@ -24,18 +24,13 @@ pub fn game_state(fen: &str) -> JsValue {
 	let moves = js_sys::Array::new();
 	board.all_moves(|m| {
 		let mov = js_sys::Object::new();
-		js_sys::Reflect::set(
-			&mov,
-			&JsValue::from("from"),
-			&JsValue::from(m.from.to_string()),
-		)
-		.unwrap();
-		js_sys::Reflect::set(&mov, &JsValue::from("to"), &JsValue::from(m.to.to_string())).unwrap();
+		set(&mov, "from", m.from.to_string());
+		set(&mov, "to", m.to.to_string());
 		moves.push(&mov);
 		ops::ControlFlow::Continue(())
 	});
 	let result = js_sys::Object::new();
-	js_sys::Reflect::set(&result, &JsValue::from("moves"), &moves).unwrap();
+	set(&result, "moves", &moves);
 	result.into()
 }
 
@@ -63,6 +58,15 @@ pub fn apply_move(fen: &str, from: &str, to: &str, promotion: Option<char>) -> S
 fn random_u32() -> u32 {
 	let random_f64 = js_sys::Math::random();
 	(random_f64 * f64::from(u32::MAX)) as u32
+}
+
+fn set(target: &JsValue, property_key: &str, value: impl Into<JsValue>) {
+	js_sys::Reflect::set(
+		target,
+		&JsValue::from(property_key),
+		&value.into(),
+	)
+	.unwrap();
 }
 
 #[wasm_bindgen]
