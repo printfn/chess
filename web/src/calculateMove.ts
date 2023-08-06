@@ -4,10 +4,17 @@ import {
 	init_panic_hook,
 } from '../../wasm/pkg';
 
-self.addEventListener('message', async ({ data }) => {
-	await initWasm();
-	init_panic_hook();
-	const fen: string = data;
-	const result = calculate_move(fen);
-	postMessage(result);
-});
+type CalculateMoveEvent = {
+	fen: string;
+	depth: number;
+};
+
+self.addEventListener(
+	'message',
+	async ({ data: { fen, depth } }: MessageEvent<CalculateMoveEvent>) => {
+		await initWasm();
+		init_panic_hook();
+		const result = calculate_move(fen, depth);
+		postMessage(result);
+	},
+);

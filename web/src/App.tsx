@@ -9,6 +9,7 @@ import { Modal } from 'bootstrap';
 
 function App() {
 	const [theme, setTheme] = useState(initialTheme());
+	const [depth, setDepth] = useState(3);
 	useEffect(() => {
 		localStorage.setItem('theme', theme);
 		document.documentElement.setAttribute('data-bs-theme', theme);
@@ -17,7 +18,13 @@ function App() {
 
 	return (
 		<>
-			<Settings id="settings-modal" theme={theme} setTheme={setTheme} />
+			<Settings
+				id="settings-modal"
+				theme={theme}
+				setTheme={setTheme}
+				depth={depth}
+				setDepth={setDepth}
+			/>
 			<GameOver id="game-over-modal" />
 			<Promotion
 				id="promotion-modal"
@@ -36,6 +43,7 @@ function App() {
 							resolvePromise.current = resolve;
 						});
 					}}
+					depth={depth}
 				/>
 			</div>
 		</>

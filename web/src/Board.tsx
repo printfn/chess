@@ -36,10 +36,14 @@ function possibleMoves(fen: string): Map<Key, Key[]> {
 
 interface Props {
 	promote: () => Promise<PromotionPiece>;
+	depth: number;
 }
 
 type CalculateMoveResult = { from: Key; to: Key; fen: string };
-function calculateMove(fen: string): Promise<CalculateMoveResult> {
+function calculateMove(
+	fen: string,
+	depth: number,
+): Promise<CalculateMoveResult> {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
 			const w = new MyWorker();
@@ -51,12 +55,12 @@ function calculateMove(fen: string): Promise<CalculateMoveResult> {
 				console.error(e);
 				reject(e);
 			};
-			w.postMessage(fen);
+			w.postMessage({ fen, depth });
 		}, 500);
 	});
 }
 
-export function Board({ promote }: Props) {
+export function Board({ promote, depth }: Props) {
 	const [fen, setFen] = useState(INITIAL_POSITION);
 	const [perspective, setPerspective] = useState(true);
 	const [lastMove, setLastMove] = useState<[Key, Key] | undefined>(undefined);
@@ -87,7 +91,7 @@ export function Board({ promote }: Props) {
 							new Modal(document.getElementById('game-over-modal')!).show();
 							return;
 						}
-						const result = await calculateMove(nextPos);
+						const result = await calculateMove(nextPos, depth);
 						setFen(result.fen);
 						setLastMove([result.from, result.to]);
 						if (possibleMoves(result.fen).size === 0) {
@@ -102,7 +106,7 @@ export function Board({ promote }: Props) {
 				enabled: true,
 			},
 		}),
-		[fen, perspective, lastMove, block, promote],
+		[fen, perspective, lastMove, block, promote, depth],
 	);
 
 	useEffect(() => {
@@ -123,7 +127,7 @@ export function Board({ promote }: Props) {
 		setLastMove(undefined);
 		setBlock(false);
 		if (color === 'black') {
-			const result = await calculateMove(INITIAL_POSITION);
+			const result = await calculateMove(INITIAL_POSITION, depth);
 			setFen(result.fen);
 			setLastMove([result.from, result.to]);
 		}
