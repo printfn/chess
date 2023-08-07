@@ -10,6 +10,7 @@ import { Modal } from 'bootstrap';
 function App() {
 	const [theme, setTheme] = useState(initialTheme());
 	const [depth, setDepth] = useState(3);
+	const [enableQuiescence, setEnableQuiescence] = useState(true);
 	useEffect(() => {
 		localStorage.setItem('theme', theme);
 		document.documentElement.setAttribute('data-bs-theme', theme);
@@ -24,6 +25,8 @@ function App() {
 				setTheme={setTheme}
 				depth={depth}
 				setDepth={setDepth}
+				enableQuiescence={enableQuiescence}
+				setEnableQuiescence={setEnableQuiescence}
 			/>
 			<GameOver id="game-over-modal" />
 			<Promotion
@@ -44,6 +47,7 @@ function App() {
 						});
 					}}
 					depth={depth}
+					enableQuiescence={enableQuiescence}
 				/>
 			</div>
 		</>

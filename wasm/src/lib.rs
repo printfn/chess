@@ -65,9 +65,9 @@ fn set(target: &JsValue, property_key: &str, value: impl Into<JsValue>) {
 }
 
 #[wasm_bindgen]
-pub fn calculate_move(fen: &str, depth: usize) -> String {
+pub fn calculate_move(fen: &str, depth: usize, enable_quiescence: bool) -> String {
 	let mut board = Board::from_fen(fen);
-	let mov = search(&board, depth, random_u32);
+	let mov = search(&board, depth, enable_quiescence, random_u32);
 	let Some(mov) = mov else {
 		return "".to_string();
 	};

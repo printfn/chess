@@ -52,16 +52,20 @@ fn quiesce(board: &Board, mut alpha: i32, beta: i32) -> i32 {
 	alpha
 }
 
-fn zw_search(board: &Board, beta: i32, depth: usize) -> i32 {
+fn zw_search(board: &Board, beta: i32, depth: usize, enable_quiescence: bool) -> i32 {
 	if depth == 0 {
-		return quiesce(board, beta - 1, beta);
+		return if enable_quiescence {
+			quiesce(board, beta - 1, beta)
+		} else {
+			evaluate(board)
+		};
 	}
 
 	let mut result = beta - 1;
 	board.all_moves(|m| {
 		let mut new_board = *board;
 		new_board.apply_move(m);
-		let score = -zw_search(&new_board, 1 - beta, depth - 1);
+		let score = -zw_search(&new_board, 1 - beta, depth - 1, enable_quiescence);
 		if score >= beta {
 			result = beta;
 			return ops::ControlFlow::Break(());
@@ -71,7 +75,13 @@ fn zw_search(board: &Board, beta: i32, depth: usize) -> i32 {
 	result
 }
 
-fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
+fn pv_search(
+	board: &Board,
+	mut alpha: i32,
+	beta: i32,
+	depth: usize,
+	enable_quiescence: bool,
+) -> i32 {
 	if depth == 0 {
 		return quiesce(board, alpha, beta);
 	}
@@ -82,11 +92,11 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 		new_board.apply_move(m);
 
 		let score = if search_pv {
-			-pv_search(&new_board, -beta, -alpha, depth - 1)
+			-pv_search(&new_board, -beta, -alpha, depth - 1, enable_quiescence)
 		} else {
-			let s = -zw_search(&new_board, -alpha, depth - 1);
+			let s = -zw_search(&new_board, -alpha, depth - 1, enable_quiescence);
 			if s > alpha {
-				-pv_search(&new_board, -beta, -alpha, depth - 1)
+				-pv_search(&new_board, -beta, -alpha, depth - 1, enable_quiescence)
 			} else {
 				s
 			}
@@ -105,7 +115,12 @@ fn pv_search(board: &Board, mut alpha: i32, beta: i32, depth: usize) -> i32 {
 	alpha
 }
 
-pub fn search(board: &Board, depth: usize, random_u32: fn() -> u32) -> Option<Move> {
+pub fn search(
+	board: &Board,
+	depth: usize,
+	enable_quiescence: bool,
+	random_u32: fn() -> u32,
+) -> Option<Move> {
 	let mut moves = vec![];
 	board.all_moves(|m| {
 		moves.push(m);
@@ -121,14 +136,14 @@ pub fn search(board: &Board, depth: usize, random_u32: fn() -> u32) -> Option<Mo
 	let mut alpha = {
 		let mut new_board = *board;
 		new_board.apply_move(moves[0]);
-		-pv_search(&new_board, -10000, 10000, depth - 1)
+		-pv_search(&new_board, -10000, 10000, depth - 1, enable_quiescence)
 	};
 	let beta = 10000;
 	let mut best_move = moves[0];
 	for m in moves.into_iter().skip(1) {
 		let mut new_board = *board;
 		new_board.apply_move(m);
-		let score = -pv_search(&new_board, -beta, -alpha, depth - 1);
+		let score = -pv_search(&new_board, -beta, -alpha, depth - 1, enable_quiescence);
 		if score > alpha {
 			alpha = score;
 			best_move = m;
@@ -152,7 +167,7 @@ mod tests {
 			ops::ControlFlow::Continue(())
 		});
 		eprintln!("{moves:?}");
-		let m = search(&board, 3, || 0).unwrap();
+		let m = search(&board, 3, true, || 0).unwrap();
 		assert_eq!(m.format(board, moves.as_slice()).to_string(), "cxd6");
 		board.apply_move(m);
 	}

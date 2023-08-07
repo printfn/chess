@@ -3,18 +3,16 @@ import {
 	calculate_move,
 	init_panic_hook,
 } from '../../wasm/pkg';
-
-type CalculateMoveEvent = {
-	fen: string;
-	depth: number;
-};
+import { CalculateMoveArgs } from './lib/CalculateMoveArgs';
 
 self.addEventListener(
 	'message',
-	async ({ data: { fen, depth } }: MessageEvent<CalculateMoveEvent>) => {
+	async ({
+		data: { fen, depth, enableQuiescence },
+	}: MessageEvent<CalculateMoveArgs>) => {
 		await initWasm();
 		init_panic_hook();
-		const result = calculate_move(fen, depth);
+		const result = calculate_move(fen, depth, enableQuiescence);
 		postMessage(result);
 	},
 );

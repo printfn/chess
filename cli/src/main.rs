@@ -33,7 +33,7 @@ fn main() {
 			let input = input.parse::<usize>();
 			if let Ok(input) = input {
 				if input == 0 {
-					break search(&board, 5, random_u32).expect("Expected to find a move");
+					break search(&board, 5, true, random_u32).expect("Expected to find a move");
 				} else if input <= moves.len() {
 					break moves[input - 1];
 				}

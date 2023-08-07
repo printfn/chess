@@ -7,12 +7,16 @@ export function Settings({
 	setTheme,
 	depth,
 	setDepth,
+	enableQuiescence,
+	setEnableQuiescence,
 }: {
 	id: string;
 	theme: Theme;
 	setTheme: (theme: Theme) => void;
 	depth: number;
 	setDepth: (depth: number) => void;
+	enableQuiescence: boolean;
+	setEnableQuiescence: (enableQuiescence: boolean) => void;
 }) {
 	const onChangeTheme = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newValue = e.currentTarget.value;
@@ -40,33 +44,56 @@ export function Settings({
 						></button>
 					</div>
 					<div className="modal-body">
-						<label htmlFor="theme-select-input" className="form-label">
-							Theme
-						</label>
-						<select
-							id="theme-select-input"
-							className="form-select"
-							aria-label="Choose a theme"
-							value={theme}
-							onChange={onChangeTheme}
-						>
-							<option value="pink">Pink</option>
-							<option value="brown">Brown</option>
-						</select>
-						<label htmlFor="depth-select-input" className="form-label">
-							Calculation Depth
-						</label>
-						<select
-							id="depth-select-input"
-							className="form-select"
-							aria-label="Set the calculation depth"
-							value={depth}
-							onChange={onChangeDepth}
-						>
-							<option value="1">1</option>
-							<option value="2">2</option>
-							<option value="3">3</option>
-						</select>
+						<div className="mb-3">
+							<label htmlFor="theme-select-input" className="form-label">
+								Theme
+							</label>
+							<select
+								id="theme-select-input"
+								className="form-select"
+								aria-label="Choose a theme"
+								value={theme}
+								onChange={onChangeTheme}
+							>
+								<option value="pink">Pink</option>
+								<option value="brown">Brown</option>
+							</select>
+						</div>
+						<div className="mb-3">
+							<label htmlFor="depth-select-input" className="form-label">
+								Calculation Depth
+							</label>
+							<select
+								id="depth-select-input"
+								className="form-select"
+								aria-label="Set the calculation depth"
+								value={depth}
+								onChange={onChangeDepth}
+							>
+								<option value="1">1</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+								<option value="4">4</option>
+							</select>
+						</div>
+						<div className="mb-3">
+							<div className="form-check form-switch">
+								<input
+									className="form-check-input"
+									type="checkbox"
+									role="switch"
+									id="quiescence-switch-input"
+									checked={enableQuiescence}
+									onChange={e => setEnableQuiescence(e.currentTarget.checked)}
+								/>
+								<label
+									htmlFor="quiescence-switch-input"
+									className="form-check-label"
+								>
+									Enable Quiescence Search
+								</label>
+							</div>
+						</div>
 					</div>
 					<div className="modal-footer">
 						<button
