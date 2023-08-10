@@ -1,2 +1,20 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import { Chessground } from 'chessground';
+	import type { Api } from 'chessground/api';
+	import type { Config } from 'chessground/config';
+	import { onMount } from 'svelte';
+	import './board.css';
+
+	let chessboard: HTMLDivElement;
+	let api: Api;
+	let config: Config;
+
+	onMount(() => {
+		api = Chessground(chessboard, config);
+	});
+</script>
+
+<div class="container mx-auto px-4">
+	<h1 class="text-2xl">Chess</h1>
+	<div bind:this={chessboard} class="aspect-square max-w-[80vh]" />
+</div>
