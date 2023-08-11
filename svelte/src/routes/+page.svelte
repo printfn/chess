@@ -1,20 +1,10 @@
 <script lang="ts">
-	import { Chessground } from 'chessground';
-	import type { Api } from 'chessground/api';
-	import type { Config } from 'chessground/config';
-	import { onMount } from 'svelte';
-	import './board.css';
+	import Board from '$lib/board/board.svelte';
 
-	let chessboard: HTMLDivElement;
-	let api: Api;
-	let config: Config;
-
-	onMount(() => {
-		api = Chessground(chessboard, config);
-	});
+	const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 </script>
 
 <div class="container mx-auto px-4">
-	<h1 class="text-2xl">Chess</h1>
-	<div bind:this={chessboard} class="aspect-square max-w-[80vh]" />
+	<h1 class="text-4xl text-center p-2">Chess</h1>
+	<Board {fen} classes="aspect-square max-w-[80vh] mx-auto" />
 </div>
