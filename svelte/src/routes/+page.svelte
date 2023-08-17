@@ -19,9 +19,9 @@
 
 	let config: Config;
 	$: config = {
-		fen: fen,
+		fen,
 		coordinates: false,
-		orientation: perspective ? 'white' : 'black',
+		orientation: perspective,
 		lastMove: lastMove,
 		animation: {
 			enabled: true,
@@ -55,11 +55,16 @@
 			},
 		},
 	};
+
+	function flip() {
+		perspective = perspective === 'white' ? 'black' : 'white';
+	}
 </script>
 
 <div class="container mx-auto px-4">
 	<Heading class="text-4xl font-semibold text-center p-2">Chess</Heading>
 	<Board {config} classes="aspect-square max-w-[80vh] mx-auto" />
+	<Button class="block mx-auto" on:click={flip}>Flip</Button>
 </div>
 
 <Modal title="Game Over" bind:open={gameOverModal} autoclose>
