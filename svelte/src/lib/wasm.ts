@@ -34,13 +34,13 @@ export function possibleMoves(fen: string): Map<Key, Key[]> {
 	return result;
 }
 
-export function calculateMove(
+export async function calculateMove(
 	fen: string,
 	depth: number,
 	enableQuiescence: boolean,
 ): Promise<CalculateMoveResult> {
-	return new Promise((resolve, reject) => {
-		setTimeout(() => {
+	const [result] = await Promise.all([
+		new Promise<CalculateMoveResult>((resolve, reject) => {
 			const w = new MyWorker();
 			w.onmessage = e => {
 				const result: { from: Key; to: Key; fen: string } = JSON.parse(e.data);
@@ -52,8 +52,14 @@ export function calculateMove(
 			};
 			const args: CalculateMoveArgs = { fen, depth, enableQuiescence };
 			w.postMessage(args);
-		}, 500);
-	});
+		}),
+		sleep(200),
+	]);
+	return result;
+}
+
+function sleep(ms: number) {
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function applyMove(fen: string, from: Key, to: Key, promotion?: PromotionPiece) {

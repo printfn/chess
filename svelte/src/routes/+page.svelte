@@ -8,7 +8,7 @@
 
 	const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 	const depth = 3;
-	const enableQuiescence = false;
+	const enableQuiescence = true;
 
 	let fen = initialPosition;
 	let perspective: 'white' | 'black' = 'white';
