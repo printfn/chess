@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Board from '$lib/board/board.svelte';
 	import PromotionModal from '$lib/PromotionModal.svelte';
-	import { applyMove, calculateMove, possibleMoves } from '$lib/wasm';
+	import { applyMove, calculateMove, possibleMoves, type PromotionPiece } from '$lib/wasm';
 	import type { Config } from 'chessground/config';
 	import type { Key } from 'chessground/types';
 	import { Modal, Button, Heading } from 'flowbite-svelte';
@@ -15,7 +15,7 @@
 	let lastMove: [Key, Key] | undefined = undefined;
 	let block = false;
 	let gameOverModal = false;
-	let promotionModal: PromotionModal;
+	let promote: () => Promise<PromotionPiece>;
 
 	let config: Config;
 	$: config = {
@@ -34,7 +34,7 @@
 					lastMove = [from, to];
 					let nextPos = applyMove(fen, from, to);
 					if (!nextPos) {
-						const promotion = await promotionModal.promote();
+						const promotion = await promote();
 						nextPos = applyMove(fen, from, to, promotion);
 					}
 					fen = nextPos;
@@ -74,4 +74,4 @@
 	</svelte:fragment>
 </Modal>
 
-<PromotionModal bind:this={promotionModal} />
+<PromotionModal bind:promote />
