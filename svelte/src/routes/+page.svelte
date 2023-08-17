@@ -1,10 +1,72 @@
 <script lang="ts">
 	import Board from '$lib/board/board.svelte';
+	import PromotionModal from '$lib/PromotionModal.svelte';
+	import { applyMove, calculateMove, possibleMoves } from '$lib/wasm';
+	import type { Config } from 'chessground/config';
+	import type { Key } from 'chessground/types';
+	import { Modal, Button, Heading } from 'flowbite-svelte';
 
-	const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+	const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+	const depth = 3;
+	const enableQuiescence = false;
+
+	let fen = initialPosition;
+	let perspective: 'white' | 'black' = 'white';
+	let lastMove: [Key, Key] | undefined = undefined;
+	let block = false;
+	let gameOverModal = false;
+	let promotionModal: PromotionModal;
+
+	let config: Config;
+	$: config = {
+		fen: fen,
+		coordinates: false,
+		orientation: perspective ? 'white' : 'black',
+		lastMove: lastMove,
+		animation: {
+			enabled: true,
+		},
+		movable: {
+			free: false,
+			dests: block ? new Map() : possibleMoves(fen),
+			events: {
+				after: async (from, to) => {
+					lastMove = [from, to];
+					let nextPos = applyMove(fen, from, to);
+					if (!nextPos) {
+						const promotion = await promotionModal.promote();
+						nextPos = applyMove(fen, from, to, promotion);
+					}
+					fen = nextPos;
+					block = true;
+					if (possibleMoves(nextPos).size === 0) {
+						gameOverModal = true;
+						return;
+					}
+					const result = await calculateMove(nextPos, depth, enableQuiescence);
+					fen = result.fen;
+					lastMove = [result.from, result.to];
+					if (possibleMoves(result.fen).size === 0) {
+						gameOverModal = true;
+						return;
+					}
+					block = false;
+				},
+			},
+		},
+	};
 </script>
 
 <div class="container mx-auto px-4">
-	<h1 class="text-4xl text-center p-2">Chess</h1>
-	<Board {fen} classes="aspect-square max-w-[80vh] mx-auto" />
+	<Heading class="text-4xl font-semibold text-center p-2">Chess</Heading>
+	<Board {config} classes="aspect-square max-w-[80vh] mx-auto" />
 </div>
+
+<Modal title="Game Over" bind:open={gameOverModal} autoclose>
+	<p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">The game is over.</p>
+	<svelte:fragment slot="footer">
+		<Button>Close</Button>
+	</svelte:fragment>
+</Modal>
+
+<PromotionModal bind:this={promotionModal} />

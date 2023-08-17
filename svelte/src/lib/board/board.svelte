@@ -4,14 +4,13 @@
 	import type { Api } from 'chessground/api';
 	import { Chessground } from 'chessground';
 
-	export let fen: string;
+	export let config: Config;
 	export let classes: string;
 
 	let chessboard: HTMLDivElement;
 	let api: Api;
 
 	$: {
-		const config: Config = { fen };
 		if (api) {
 			api.set(config);
 		} else if (chessboard) {
