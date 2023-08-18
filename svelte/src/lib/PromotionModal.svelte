@@ -21,7 +21,7 @@
 
 	function close() {
 		onExit?.(piece);
-        onExit = undefined;
+		onExit = undefined;
 	}
 </script>
 
