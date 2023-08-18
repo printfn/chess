@@ -65,8 +65,8 @@
 <div class="container mx-auto px-4">
 	<Heading class="text-4xl font-semibold text-center p-2">Chess</Heading>
 	<Board {config} classes="aspect-square max-w-[80vh] mx-auto" />
-	<Button class="block mx-auto" on:click={flip}>Flip</Button>
-	<Button class="block mx-auto" on:click={() => (settingsModal = true)}>Settings</Button>
+	<Button class="block mx-auto" outline on:click={flip}>Flip</Button>
+	<Button class="block mx-auto" outline on:click={() => (settingsModal = true)}>Settings</Button>
 </div>
 
 <Modal title="Game Over" bind:open={gameOverModal} autoclose outsideclose>
