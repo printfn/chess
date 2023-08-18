@@ -1,38 +1,35 @@
 <script lang="ts">
-	import { Button, Modal } from 'flowbite-svelte';
+	import { Button, Label, Modal, Select } from 'flowbite-svelte';
 	import type { PromotionPiece } from './wasm';
 
-	let modalOpen = false;
 	let piece: PromotionPiece = 'Q';
 	let onExit: ((value: PromotionPiece) => void) | undefined = undefined;
 
+	const pieces = [
+		{ value: 'Q', name: 'Queen' },
+		{ value: 'R', name: 'Rook' },
+		{ value: 'B', name: 'Bishop' },
+		{ value: 'N', name: 'Knight' },
+	];
+
 	export function promote(): Promise<PromotionPiece> {
-		modalOpen = true;
-		piece = 'Q';
 		return new Promise<PromotionPiece>(resolve => {
+			piece = 'Q';
 			onExit = resolve;
 		});
 	}
 
 	function close() {
-		modalOpen = false;
 		onExit?.(piece);
+        onExit = undefined;
 	}
 </script>
 
-<Modal title="Promotion" bind:open={modalOpen} permanent>
-	<label for="theme-select-input">Choose which piece to promote to:</label>
-	<select
-		id="theme-select-input"
-		class="form-select"
-		aria-label="Choose a piece"
-		bind:value={piece}
-	>
-		<option value="Q">Queen</option>
-		<option value="R">Rook</option>
-		<option value="B">Bishop</option>
-		<option value="N">Knight</option>
-	</select>
+<Modal title="Promotion" open={Boolean(onExit)} permanent>
+	<Label>
+		Choose which piece to promote to:
+		<Select class="mt-2" items={pieces} placeholder="" bind:value={piece} />
+	</Label>
 	<svelte:fragment slot="footer">
 		<Button on:click={close}>Confirm</Button>
 	</svelte:fragment>
