@@ -31,6 +31,6 @@
 		<Select class="mt-2" items={pieces} placeholder="" bind:value={piece} />
 	</Label>
 	<svelte:fragment slot="footer">
-		<Button on:click={close}>Confirm</Button>
+		<Button class="ml-auto" on:click={close}>Confirm</Button>
 	</svelte:fragment>
 </Modal>
