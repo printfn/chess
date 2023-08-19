@@ -60,13 +60,35 @@
 	function flip() {
 		perspective = perspective === 'white' ? 'black' : 'white';
 	}
+
+	async function newGame(color: 'white' | 'black' | 'random') {
+		if (color === 'random') {
+			color = Math.random() > 0.5 ? 'white' : 'black';
+		}
+		fen = initialPosition;
+		lastMove = undefined;
+		perspective = color;
+		block = false;
+		if (color === 'black') {
+			const result = await calculateMove(initialPosition, $depth, $enableQuiescence);
+			fen = result.fen;
+			lastMove = [result.from, result.to];
+		}
+	}
 </script>
 
 <div class="container mx-auto px-4">
 	<Heading class="text-4xl font-semibold text-center p-2">Chess</Heading>
-	<Board {config} classes="aspect-square max-w-[80vh] mx-auto" />
-	<Button class="block mx-auto" outline on:click={flip}>Flip</Button>
-	<Button class="block mx-auto" outline on:click={() => (settingsModal = true)}>Settings</Button>
+	<div class="max-w-[80vh] mx-auto">
+		<Board {config} classes="aspect-square" />
+		<div class="grid gap-2 mb-2">
+			<Button outline on:click={flip}>Flip</Button>
+			<Button outline on:click={() => (settingsModal = true)}>Settings</Button>
+			<Button outline on:click={() => newGame('white')}>New Game (White)</Button>
+			<Button outline on:click={() => newGame('black')}>New Game (Black)</Button>
+			<Button outline on:click={() => newGame('random')}>New Game (Random)</Button>
+		</div>
+	</div>
 </div>
 
 <Modal title="Game Over" bind:open={gameOverModal} autoclose outsideclose>
