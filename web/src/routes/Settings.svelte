@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
+	import { A, Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
 	import { theme, depth, enableQuiescence, Themes, showMaterialDifference } from '../lib/settings';
 
 	export let open = false;
@@ -29,6 +29,9 @@
 	</Label>
 	<Toggle bind:checked={$enableQuiescence}>Enable Quiescence Search</Toggle>
 	<Toggle bind:checked={$showMaterialDifference}>Show Material Difference</Toggle>
+	<A target="_blank" rel="noreferrer noopener" href="https://github.com/printfn/chess">
+		View Source Code on GitHub
+	</A>
 	<svelte:fragment slot="footer">
 		<Button class="ml-auto">Close</Button>
 	</svelte:fragment>
