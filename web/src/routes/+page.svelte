@@ -18,20 +18,11 @@
 	let settingsModal = false;
 	let promote: () => Promise<PromotionPiece>;
 
-	function getGameOverMessage(fen: string) {
-		const gameState = getGameState(fen);
-		if (gameState.dests.size > 0) {
-			return;
-		}
-		if (gameState.check) {
-			const winner = gameState.currentPlayer === 'white' ? 'Black' : 'White';
-			return { title: 'Checkmate', message: `${winner} wins by checkmate.` };
-		}
-		return { title: 'Stalemate', message: 'The game is drawn by stalemate.' };
-	}
-
-	$: gameOverTitle = getGameOverMessage(fen)?.title || '';
-	$: gameOverMessage = getGameOverMessage(fen)?.message || '';
+	$: gameState = getGameState(fen);
+	$: gameOverTitle = gameState.check ? 'Checkmate' : 'Stalemate';
+	$: gameOverMessage = gameState.check
+		? `${gameState.currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate.`
+		: 'The game is drawn by stalemate.';
 
 	let config: Config;
 	$: {
@@ -47,6 +38,7 @@
 				enabled: true,
 			},
 			movable: {
+				color: gameState.currentPlayer,
 				free: false,
 				dests: block ? new Map() : gameState.dests,
 				events: {
