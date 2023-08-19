@@ -20,3 +20,12 @@
 </script>
 
 <div bind:this={chessboard} class={classes} />
+
+<style>
+	:global(cg-container) {
+		left: 0;
+		right: 0;
+		margin-left: auto;
+		margin-right: auto;
+	}
+</style>
