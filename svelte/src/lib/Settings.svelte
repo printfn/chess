@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
-	import { theme, depth, enableQuiescence } from './settings';
+	import { theme, depth, enableQuiescence, Themes } from './settings';
 
 	export let open = false;
+
+	const themes = Object.entries(Themes).map(([k, v]) => ({ name: v, value: k }));
 
 	function changeDepth(e: Event) {
 		if (!e.currentTarget) return;
@@ -13,10 +15,7 @@
 <Modal title="Settings" bind:open autoclose outsideclose>
 	<Label>
 		Theme
-		<Select class="mt-2" bind:value={$theme} placeholder="">
-			<option value="pink">Pink</option>
-			<option value="brown">Brown</option>
-		</Select>
+		<Select class="mt-2" bind:value={$theme} placeholder="" items={themes} />
 	</Label>
 	<Label>
 		Calculation Depth

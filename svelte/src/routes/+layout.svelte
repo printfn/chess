@@ -1,14 +1,17 @@
 <script lang="ts">
-	import { theme } from '$lib/settings';
+	import { theme, type Theme } from '$lib/settings';
 	import '../app.css';
 
-	theme.subscribe(theme => {
+	function handleThemeUpdate(theme: Theme) {
 		const root = document.querySelector(':root') as HTMLElement;
 		if (!root) {
 			return;
 		}
 		root.setAttribute('data-theme', theme);
-	});
+		localStorage.setItem('theme', theme);
+	}
+
+	$: handleThemeUpdate($theme);
 </script>
 
 <slot />
