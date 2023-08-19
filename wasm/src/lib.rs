@@ -13,7 +13,7 @@ type GameState = {
 		from: Square,
 		to: Square,
 	}[],
-	check: bool,
+	check: boolean,
 	currentPlayer: 'white' | 'black',
 }
 

@@ -18,6 +18,21 @@
 	let settingsModal = false;
 	let promote: () => Promise<PromotionPiece>;
 
+	function getGameOverMessage(fen: string) {
+		const gameState = getGameState(fen);
+		if (gameState.dests.size > 0) {
+			return;
+		}
+		if (gameState.check) {
+			const winner = gameState.currentPlayer === 'white' ? 'Black' : 'White';
+			return { title: 'Checkmate', message: `${winner} wins by checkmate.` };
+		}
+		return { title: 'Stalemate', message: 'The game is drawn by stalemate.' };
+	}
+
+	$: gameOverTitle = getGameOverMessage(fen)?.title || '';
+	$: gameOverMessage = getGameOverMessage(fen)?.message || '';
+
 	let config: Config;
 	$: {
 		const gameState = getGameState(fen);
@@ -98,8 +113,8 @@
 	</div>
 </div>
 
-<Modal title="Game Over" bind:open={gameOverModal} autoclose outsideclose>
-	<P>The game is over.</P>
+<Modal title={gameOverTitle} bind:open={gameOverModal} autoclose outsideclose>
+	<P>{gameOverMessage}</P>
 	<svelte:fragment slot="footer">
 		<Button class="ml-auto">Close</Button>
 	</svelte:fragment>
