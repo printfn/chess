@@ -180,6 +180,12 @@ piece.fading {
 [data-theme='brown'] cg-board {
 	background-image: url(board-brown.svg);
 }
+[data-theme='orange'] cg-board {
+	background-image: url(board-orange.svg);
+}
+[data-theme='grey'] cg-board {
+	background-image: url(board-grey.svg);
+}
 
 /** Interactive board square colors */
 cg-board square.move-dest {

@@ -3,6 +3,8 @@ import { writable } from 'svelte/store';
 export const Themes = {
 	pink: 'Pink',
 	brown: 'Brown',
+	grey: 'Grey',
+	orange: 'Orange',
 } as const;
 export type Theme = keyof typeof Themes;
 
