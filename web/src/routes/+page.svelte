@@ -23,7 +23,7 @@
 		fen,
 		coordinates: false,
 		orientation: perspective,
-		lastMove: lastMove,
+		lastMove,
 		animation: {
 			enabled: true,
 		},
