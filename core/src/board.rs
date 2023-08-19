@@ -475,6 +475,27 @@ impl Board {
 	pub fn setp(&mut self, pos: Pos, piece: Option<(Player, Piece)>) {
 		self.repr.set(pos.value() as usize, piece);
 	}
+
+	pub fn material_difference(&self) -> i32 {
+		let white_value = self.repr.white_pawns.count()
+			+ self.repr.white_knights.count() * 3
+			+ self.repr.white_bishops.count() * 3
+			+ self.repr.white_rooks.count() * 5
+			+ self.repr.white_queens.count() * 9;
+
+		let black_value = self.repr.black_pawns.count()
+			+ self.repr.black_knights.count() * 3
+			+ self.repr.black_bishops.count() * 3
+			+ self.repr.black_rooks.count() * 5
+			+ self.repr.black_queens.count() * 9;
+
+		let diff = white_value as i32 - black_value as i32;
+
+		match self.current_player {
+			Player::White => diff,
+			Player::Black => -diff,
+		}
+	}
 }
 
 impl fmt::Display for Board {

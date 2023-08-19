@@ -17,3 +17,4 @@ function initialTheme(): Theme {
 export const theme = writable<Theme>(initialTheme());
 export const depth = writable(3);
 export const enableQuiescence = writable(true);
+export const showMaterialDifference = writable(false);

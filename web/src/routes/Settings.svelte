@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
-	import { theme, depth, enableQuiescence, Themes } from '../lib/settings';
+	import { theme, depth, enableQuiescence, Themes, showMaterialDifference } from '../lib/settings';
 
 	export let open = false;
 
@@ -28,6 +28,7 @@
 		</Select>
 	</Label>
 	<Toggle bind:checked={$enableQuiescence}>Enable Quiescence Search</Toggle>
+	<Toggle bind:checked={$showMaterialDifference}>Show Material Difference</Toggle>
 	<svelte:fragment slot="footer">
 		<Button class="ml-auto">Close</Button>
 	</svelte:fragment>

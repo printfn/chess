@@ -15,6 +15,7 @@ type GameState = {
 	}[],
 	check: boolean,
 	currentPlayer: 'white' | 'black',
+	materialDifference: number,
 }
 
 export function game_state(fen: string): GameState;
@@ -35,6 +36,7 @@ pub fn game_state(fen: &str) -> JsValue {
 	set(&result, "moves", &moves);
 	set(&result, "check", board.in_check());
 	set(&result, "currentPlayer", board.current_player.string());
+	set(&result, "materialDifference", board.material_difference());
 	result.into()
 }
 

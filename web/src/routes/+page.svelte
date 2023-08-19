@@ -6,7 +6,7 @@
 	import type { Config } from 'chessground/config';
 	import type { Key } from 'chessground/types';
 	import { Modal, Button, Heading, P } from 'flowbite-svelte';
-	import { enableQuiescence, depth } from '$lib/settings';
+	import { enableQuiescence, depth, showMaterialDifference } from '$lib/settings';
 
 	const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -94,6 +94,9 @@
 <div class="container mx-auto px-4">
 	<Heading class="text-4xl font-semibold text-center p-2">Chess</Heading>
 	<div class="max-w-[80vh] mx-auto">
+		{#if $showMaterialDifference}
+			<P class="text-right">Material Difference: {gameState.materialDifference}</P>
+		{/if}
 		<Board {config} class="aspect-square" />
 		<div class="grid gap-2 my-2">
 			<Button outline on:click={flip}>Flip</Button>

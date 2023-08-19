@@ -31,10 +31,17 @@ export function getGameState(fen: string) {
 			dests.set(from, [to]);
 		}
 	}
+
+	const materialDifference =
+		gameState.materialDifference > 0
+			? `+${gameState.materialDifference}`
+			: gameState.materialDifference.toString();
+
 	return {
 		dests,
 		check: gameState.check,
 		currentPlayer: gameState.currentPlayer,
+		materialDifference,
 	};
 }
 
