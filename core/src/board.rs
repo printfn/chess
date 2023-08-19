@@ -489,12 +489,7 @@ impl Board {
 			+ self.repr.black_rooks.count() * 5
 			+ self.repr.black_queens.count() * 9;
 
-		let diff = white_value as i32 - black_value as i32;
-
-		match self.current_player {
-			Player::White => diff,
-			Player::Black => -diff,
-		}
+		return white_value as i32 - black_value as i32;
 	}
 }
 
