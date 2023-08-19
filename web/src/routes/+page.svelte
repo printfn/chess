@@ -57,11 +57,13 @@
 		},
 	};
 
-	function flip() {
+	function flip(e: MouseEvent) {
+		(e.currentTarget as HTMLElement)?.blur();
 		perspective = perspective === 'white' ? 'black' : 'white';
 	}
 
-	async function newGame(color: 'white' | 'black' | 'random') {
+	async function newGame(e: MouseEvent, color: 'white' | 'black' | 'random') {
+		(e.currentTarget as HTMLElement)?.blur();
 		if (color === 'random') {
 			color = Math.random() > 0.5 ? 'white' : 'black';
 		}
@@ -84,9 +86,9 @@
 		<div class="grid gap-2 my-2">
 			<Button outline on:click={flip}>Flip</Button>
 			<Button outline on:click={() => (settingsModal = true)}>Settings</Button>
-			<Button outline on:click={() => newGame('white')}>New Game (White)</Button>
-			<Button outline on:click={() => newGame('black')}>New Game (Black)</Button>
-			<Button outline on:click={() => newGame('random')}>New Game (Random)</Button>
+			<Button outline on:click={e => newGame(e, 'white')}>New Game (White)</Button>
+			<Button outline on:click={e => newGame(e, 'black')}>New Game (Black)</Button>
+			<Button outline on:click={e => newGame(e, 'random')}>New Game (Random)</Button>
 		</div>
 	</div>
 </div>
