@@ -81,7 +81,7 @@
 	<Heading class="text-4xl font-semibold text-center p-2">Chess</Heading>
 	<div class="max-w-[80vh] mx-auto">
 		<Board {config} classes="aspect-square" />
-		<div class="grid gap-2 mb-2">
+		<div class="grid gap-2 my-2">
 			<Button outline on:click={flip}>Flip</Button>
 			<Button outline on:click={() => (settingsModal = true)}>Settings</Button>
 			<Button outline on:click={() => newGame('white')}>New Game (White)</Button>
