@@ -133,6 +133,9 @@ pub fn search(
 		return Some(moves[0]);
 	}
 	moves.sort_by_cached_key(|_| random_u32());
+	if depth == 0 {
+		return Some(moves[0]);
+	}
 	let mut alpha = {
 		let mut new_board = *board;
 		new_board.apply_move(moves[0]);
