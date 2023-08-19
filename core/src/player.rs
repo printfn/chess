@@ -6,6 +6,15 @@ pub enum Player {
 	Black,
 }
 
+impl Player {
+	pub fn string(self) -> &'static str {
+		match self {
+			Player::White => "white",
+			Player::Black => "black",
+		}
+	}
+}
+
 impl ops::Not for Player {
 	type Output = Self;
 

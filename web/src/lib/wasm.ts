@@ -19,19 +19,23 @@ export type CalculateMoveArgs = {
 
 export type PromotionPiece = 'Q' | 'R' | 'B' | 'N';
 
-export function possibleMoves(fen: string): Map<Key, Key[]> {
+export function getGameState(fen: string) {
 	console.log('getting possible moves for fen', fen);
 	const gameState = game_state(fen);
-	const result: Map<Key, Key[]> = new Map();
+	const dests: Map<Key, Key[]> = new Map();
 	for (const { from, to } of gameState.moves) {
-		const x = result.get(from);
+		const x = dests.get(from);
 		if (x !== undefined) {
 			x.push(to);
 		} else {
-			result.set(from, [to]);
+			dests.set(from, [to]);
 		}
 	}
-	return result;
+	return {
+		dests,
+		check: gameState.check,
+		currentPlayer: gameState.currentPlayer,
+	};
 }
 
 export async function calculateMove(

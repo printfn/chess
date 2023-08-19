@@ -2,7 +2,7 @@
 	import Board from '$lib/board/board.svelte';
 	import PromotionModal from './PromotionModal.svelte';
 	import Settings from './Settings.svelte';
-	import { applyMove, calculateMove, possibleMoves, type PromotionPiece } from '$lib/wasm';
+	import { applyMove, calculateMove, getGameState, type PromotionPiece } from '$lib/wasm';
 	import type { Config } from 'chessground/config';
 	import type { Key } from 'chessground/types';
 	import { Modal, Button, Heading, P } from 'flowbite-svelte';
@@ -19,43 +19,48 @@
 	let promote: () => Promise<PromotionPiece>;
 
 	let config: Config;
-	$: config = {
-		fen,
-		coordinates: false,
-		orientation: perspective,
-		lastMove,
-		animation: {
-			enabled: true,
-		},
-		movable: {
-			free: false,
-			dests: block ? new Map() : possibleMoves(fen),
-			events: {
-				after: async (from, to) => {
-					lastMove = [from, to];
-					let nextPos = applyMove(fen, from, to);
-					if (!nextPos) {
-						const promotion = await promote();
-						nextPos = applyMove(fen, from, to, promotion);
-					}
-					fen = nextPos;
-					block = true;
-					if (possibleMoves(nextPos).size === 0) {
-						gameOverModal = true;
-						return;
-					}
-					const result = await calculateMove(nextPos, $depth, $enableQuiescence);
-					fen = result.fen;
-					lastMove = [result.from, result.to];
-					if (possibleMoves(result.fen).size === 0) {
-						gameOverModal = true;
-						return;
-					}
-					block = false;
+	$: {
+		const gameState = getGameState(fen);
+		config = {
+			fen,
+			coordinates: false,
+			orientation: perspective,
+			check: gameState.check,
+			turnColor: gameState.currentPlayer,
+			lastMove,
+			animation: {
+				enabled: true,
+			},
+			movable: {
+				free: false,
+				dests: block ? new Map() : gameState.dests,
+				events: {
+					after: async (from, to) => {
+						lastMove = [from, to];
+						let nextPos = applyMove(fen, from, to);
+						if (!nextPos) {
+							const promotion = await promote();
+							nextPos = applyMove(fen, from, to, promotion);
+						}
+						fen = nextPos;
+						block = true;
+						if (getGameState(nextPos).dests.size === 0) {
+							gameOverModal = true;
+							return;
+						}
+						const result = await calculateMove(nextPos, $depth, $enableQuiescence);
+						fen = result.fen;
+						lastMove = [result.from, result.to];
+						if (getGameState(result.fen).dests.size === 0) {
+							gameOverModal = true;
+							return;
+						}
+						block = false;
+					},
 				},
 			},
-		},
-	};
+		};
+	}
 
 	function flip(e: MouseEvent) {
 		(e.currentTarget as HTMLElement)?.blur();

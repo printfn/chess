@@ -12,7 +12,9 @@ type GameState = {
 	moves: {
 		from: Square,
 		to: Square,
-	}[]
+	}[],
+	check: bool,
+	currentPlayer: 'white' | 'black',
 }
 
 export function game_state(fen: string): GameState;
@@ -31,6 +33,8 @@ pub fn game_state(fen: &str) -> JsValue {
 	});
 	let result = js_sys::Object::new();
 	set(&result, "moves", &moves);
+	set(&result, "check", board.in_check());
+	set(&result, "currentPlayer", board.current_player.string());
 	result.into()
 }
 
