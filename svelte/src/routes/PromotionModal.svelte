@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, Label, Modal, Select } from 'flowbite-svelte';
-	import type { PromotionPiece } from './wasm';
+	import type { PromotionPiece } from '../lib/wasm';
 
 	let piece: PromotionPiece = 'Q';
 	let onExit: ((value: PromotionPiece) => void) | undefined = undefined;

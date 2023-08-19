@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Board from '$lib/board/board.svelte';
-	import PromotionModal from '$lib/PromotionModal.svelte';
-	import Settings from '$lib/Settings.svelte';
+	import PromotionModal from './PromotionModal.svelte';
+	import Settings from './Settings.svelte';
 	import { applyMove, calculateMove, possibleMoves, type PromotionPiece } from '$lib/wasm';
 	import type { Config } from 'chessground/config';
 	import type { Key } from 'chessground/types';

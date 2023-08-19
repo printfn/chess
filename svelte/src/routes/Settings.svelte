@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
-	import { theme, depth, enableQuiescence, Themes } from './settings';
+	import { theme, depth, enableQuiescence, Themes } from '../lib/settings';
 
 	export let open = false;
 
