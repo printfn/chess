@@ -2,7 +2,7 @@
 
 web:
 	cd wasm && wasm-pack build --release --target web
-	cd web && yarn && yarn build
+	cd web && npm ci && npm run build
 
 fix:
 	cargo fmt
