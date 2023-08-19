@@ -5,7 +5,8 @@
 	import { Chessground } from 'chessground';
 
 	export let config: Config;
-	export let classes: string;
+	let className = '';
+	export { className as class };
 
 	let chessboard: HTMLDivElement;
 	let api: Api;
@@ -19,7 +20,7 @@
 	}
 </script>
 
-<div bind:this={chessboard} class={classes} />
+<div bind:this={chessboard} class={className} />
 
 <style>
 	:global(cg-container) {
