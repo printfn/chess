@@ -33,5 +33,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: chess-rust
           directory: web/build
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           wranglerVersion: '3'
