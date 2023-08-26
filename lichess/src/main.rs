@@ -29,8 +29,8 @@ fn setup_logger() -> Result<(), fern::InitError> {
 			let target = record.target();
 			let color = colors_line.get_color(&record.level());
 			let fg = color.to_fg_str();
-            let file = record.file().unwrap_or("<unknown>");
-            let line = record.line().unwrap_or(0);
+			let file = record.file().unwrap_or("<unknown>");
+			let line = record.line().unwrap_or(0);
 			out.finish(format_args!(
 				"\x1b[{fg}m{date} \x1b[{lfg}m{level}\x1b[0m {target} {file}:{line} \x1b[{fg}m{message}\x1b[0m",
 			))
@@ -45,5 +45,6 @@ async fn main() -> Result<(), Error> {
 	setup_logger()?;
 	let client = api::Client::new()?;
 	client.login().await?;
+	client.stream_events().await?;
 	Ok(())
 }

@@ -1,10 +1,11 @@
+use futures::*;
+use log::{debug, info, trace};
+use reqwest::Method;
+use serde::Deserialize;
 use std::{
 	fmt, fs,
 	io::{self, Read},
 };
-
-use log::{info, trace};
-use serde::Deserialize;
 
 use crate::Error;
 
@@ -23,6 +24,31 @@ impl GetProfileResponse {
 #[derive(Deserialize, Debug, Clone)]
 pub struct Ok {
 	pub ok: bool,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct Game {
+	id: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct Challenge {
+	id: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct ChallengeDeclined {
+	id: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(tag = "type", rename_all = "camelCase")]
+enum Event {
+	GameStart { game: Game },
+	GameFinish { game: Game },
+	Challenge { challenge: Challenge },
+	ChallengeCanceled { challenge: Challenge },
+	ChallengeDeclined { challenge: Challenge },
 }
 
 #[derive(Debug)]
@@ -44,7 +70,24 @@ impl Client {
 		Ok(Self { token, client })
 	}
 
-	async fn make_request<T: fmt::Debug>(
+	async fn request(
+		&self,
+		method: reqwest::Method,
+		path: &str,
+	) -> Result<reqwest::Response, Error> {
+		trace!("> {method} https://lichess.org/api/{path}");
+		let response = self
+			.client
+			.request(method, format!("https://lichess.org/api/{path}"))
+			.bearer_auth(&self.token)
+			.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)")
+			.send()
+			.await?;
+		trace!("< {}", response.status());
+		Ok(response)
+	}
+
+	async fn json_request<T: fmt::Debug>(
 		&self,
 		method: reqwest::Method,
 		path: &str,
@@ -52,34 +95,78 @@ impl Client {
 	where
 		for<'de> T: serde::Deserialize<'de>,
 	{
-		trace!("> {method} https://lichess.org/api/{path}");
-		let resp = self
-			.client
-			.request(method, format!("https://lichess.org/api/{path}"))
-			.bearer_auth(&self.token)
-			.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)")
-			.send()
-			.await?
-			.json::<T>()
-			.await?;
+		let resp = self.request(method, path).await?.json::<T>().await?;
 		trace!("< {resp:#?}");
 		Ok(resp)
+	}
+
+	async fn ndjson_request<T: fmt::Debug>(
+		&self,
+		method: reqwest::Method,
+		path: &str,
+	) -> Result<impl TryStream<Ok = T, Error = Error>, Error>
+	where
+		for<'de> T: serde::Deserialize<'de>,
+	{
+		Ok(self
+			.request(method, path)
+			.await?
+			.bytes_stream()
+			.map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e))
+			.into_async_read()
+			.lines()
+			.try_filter_map(|line| async move {
+				if line.is_empty() {
+					trace!("< keep-alive");
+					return Ok(None);
+				}
+				let value: T = serde_json::from_str(&line)?;
+				trace!("< received ndjson value: {:#?}", value);
+				Ok(Some(value))
+			})
+			.map_err(Into::into))
 	}
 
 	pub async fn login(&self) -> Result<(), Error> {
 		info!("logging in to Lichess (using bearer token auth)");
 		let profile: GetProfileResponse =
-			self.make_request(reqwest::Method::GET, "account").await?;
+			self.json_request(reqwest::Method::GET, "account").await?;
 		if !profile.is_bot() {
 			info!(
 				"Lichess account '{}' is not a bot account, upgrading to bot account",
 				profile.username
 			);
-			self.make_request::<Ok>(reqwest::Method::POST, "bot/account/upgrade")
+			self.json_request::<Ok>(reqwest::Method::POST, "bot/account/upgrade")
 				.await?;
 			info!("successfully upgraded to bot account");
 		}
 		info!("successfully logged in as {}", profile.username);
+		Ok(())
+	}
+
+	pub async fn decline_challenge(&self, id: &str) -> Result<(), Error> {
+		debug!("declining challenge {}", id);
+		self.json_request::<Ok>(Method::POST, &format!("challenge/{id}/decline"))
+			.await?;
+		Ok(())
+	}
+
+	pub async fn stream_events(&self) -> Result<(), Error> {
+		self.ndjson_request::<Event>(Method::GET, "stream/event")
+			.await?
+			.try_for_each_concurrent(None, |event| async move {
+				match event {
+					Event::Challenge { challenge } => {
+						info!("received challenge: {:#?}", challenge);
+						self.decline_challenge(&challenge.id).await?;
+					}
+					_ => {
+						trace!("ignoring event: {:#?}", event);
+					}
+				}
+				Ok(())
+			})
+			.await?;
 		Ok(())
 	}
 }
