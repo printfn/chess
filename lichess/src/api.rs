@@ -74,7 +74,7 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> Result<reqwest::Response, Error> {
+	) -> reqwest::Result<reqwest::Response> {
 		trace!("> {method} https://lichess.org/api/{path}");
 		let response = self
 			.client
@@ -91,7 +91,7 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> Result<T, Error>
+	) -> reqwest::Result<T>
 	where
 		for<'de> T: serde::Deserialize<'de>,
 	{
@@ -104,7 +104,7 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> Result<impl TryStream<Ok = T, Error = Error>, Error>
+	) -> reqwest::Result<impl TryStream<Ok = T, Error = io::Error>>
 	where
 		for<'de> T: serde::Deserialize<'de>,
 	{
@@ -112,7 +112,7 @@ impl Client {
 			.request(method, path)
 			.await?
 			.bytes_stream()
-			.map_err(|e| futures::io::Error::new(futures::io::ErrorKind::Other, e))
+			.map_err(|e| io::Error::new(io::ErrorKind::Other, e))
 			.into_async_read()
 			.lines()
 			.try_filter_map(|line| async move {
@@ -123,11 +123,10 @@ impl Client {
 				let value: T = serde_json::from_str(&line)?;
 				trace!("< received ndjson value: {:#?}", value);
 				Ok(Some(value))
-			})
-			.map_err(Into::into))
+			}))
 	}
 
-	pub async fn login(&self) -> Result<(), Error> {
+	pub async fn login(&self) -> reqwest::Result<()> {
 		info!("logging in to Lichess (using bearer token auth)");
 		let profile: GetProfileResponse =
 			self.json_request(reqwest::Method::GET, "account").await?;
@@ -144,7 +143,7 @@ impl Client {
 		Ok(())
 	}
 
-	pub async fn decline_challenge(&self, id: &str) -> Result<(), Error> {
+	pub async fn decline_challenge(&self, id: &str) -> reqwest::Result<()> {
 		debug!("declining challenge {}", id);
 		self.json_request::<Ok>(Method::POST, &format!("challenge/{id}/decline"))
 			.await?;
@@ -154,6 +153,7 @@ impl Client {
 	pub async fn stream_events(&self) -> Result<(), Error> {
 		self.ndjson_request::<Event>(Method::GET, "stream/event")
 			.await?
+			.map_err(|e| Error::from(e))
 			.try_for_each_concurrent(None, |event| async move {
 				match event {
 					Event::Challenge { challenge } => {
