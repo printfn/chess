@@ -1,6 +1,7 @@
 use fern::colors::{Color, ColoredLevelConfig};
 use std::error;
 
+#[allow(dead_code)]
 mod api;
 
 type Error = Box<dyn error::Error + Send + Sync + 'static>;
