@@ -53,6 +53,7 @@ struct Challenge {
 	variant: Variant,
 	status: ChallengeStatus,
 	challenger: ChallengeUser,
+	speed: String,
 	dest_user: Option<ChallengeUser>,
 }
 
@@ -77,6 +78,10 @@ enum DeclineReason {
 	Generic,
 	#[serde(rename = "standard")]
 	OnlyStandard,
+	#[serde(rename = "tooSlow")]
+	TooSlow,
+	#[serde(rename = "tooFast")]
+	TooFast,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -303,6 +308,16 @@ impl Client {
 								challenge.variant.key
 							);
 							self.decline_challenge(&challenge.id, DeclineReason::OnlyStandard)
+								.await?;
+							return Ok(());
+						}
+						if challenge.speed == "correspondence" {
+							self.decline_challenge(&challenge.id, DeclineReason::TooSlow)
+								.await?;
+							return Ok(());
+						}
+						if challenge.speed == "ultraBullet" {
+							self.decline_challenge(&challenge.id, DeclineReason::TooFast)
 								.await?;
 							return Ok(());
 						}
