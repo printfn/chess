@@ -32,8 +32,14 @@ struct Game {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+struct Variant {
+	key: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
 struct Challenge {
 	id: String,
+	variant: Variant,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -49,6 +55,14 @@ enum Event {
 	Challenge { challenge: Challenge },
 	ChallengeCanceled { challenge: Challenge },
 	ChallengeDeclined { challenge: Challenge },
+}
+
+#[derive(serde::Serialize)]
+enum DeclineReason {
+	#[serde(rename = "generic")]
+	Generic,
+	#[serde(rename = "standard")]
+	OnlyStandard,
 }
 
 #[derive(Debug)]
@@ -70,19 +84,22 @@ impl Client {
 		Ok(Self { token, client })
 	}
 
-	async fn request(
+	async fn request<T: serde::Serialize>(
 		&self,
 		method: reqwest::Method,
 		path: &str,
+		form_data: Option<&T>,
 	) -> reqwest::Result<reqwest::Response> {
 		trace!("> {method} https://lichess.org/api/{path}");
-		let response = self
+		let mut request = self
 			.client
 			.request(method, format!("https://lichess.org/api/{path}"))
 			.bearer_auth(&self.token)
-			.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)")
-			.send()
-			.await?;
+			.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)");
+		if let Some(data) = form_data {
+			request = request.form(data);
+		}
+		let response = request.send().await?;
 		trace!("< {}", response.status());
 		Ok(response)
 	}
@@ -95,7 +112,11 @@ impl Client {
 	where
 		for<'de> T: serde::Deserialize<'de>,
 	{
-		let resp = self.request(method, path).await?.json::<T>().await?;
+		let resp = self
+			.request::<()>(method, path, None)
+			.await?
+			.json::<T>()
+			.await?;
 		trace!("< {resp:#?}");
 		Ok(resp)
 	}
@@ -109,7 +130,7 @@ impl Client {
 		for<'de> T: serde::Deserialize<'de>,
 	{
 		Ok(self
-			.request(method, path)
+			.request::<()>(method, path, None)
 			.await?
 			.bytes_stream()
 			.map_err(|e| io::Error::new(io::ErrorKind::Other, e))
@@ -143,10 +164,22 @@ impl Client {
 		Ok(())
 	}
 
-	pub async fn decline_challenge(&self, id: &str) -> reqwest::Result<()> {
+	async fn decline_challenge(
+		&self,
+		id: &str,
+		decline_reason: DeclineReason,
+	) -> reqwest::Result<()> {
 		debug!("declining challenge {}", id);
-		self.json_request::<Ok>(Method::POST, &format!("challenge/{id}/decline"))
-			.await?;
+		let mut params = std::collections::HashMap::new();
+		params.insert("reason", decline_reason);
+		self.request(
+			Method::POST,
+			&format!("challenge/{id}/decline"),
+			Some(&params),
+		)
+		.await?
+		.json::<Ok>()
+		.await?;
 		Ok(())
 	}
 
@@ -157,11 +190,18 @@ impl Client {
 			.try_for_each_concurrent(None, |event| async move {
 				match event {
 					Event::Challenge { challenge } => {
-						info!("received challenge: {:#?}", challenge);
-						self.decline_challenge(&challenge.id).await?;
+						info!("received challenge: {challenge:#?}");
+						if challenge.variant.key.as_str() != "standard" {
+							info!("declining challenge because it is not standard");
+							self.decline_challenge(&challenge.id, DeclineReason::OnlyStandard)
+								.await?;
+							return Ok(());
+						}
+						self.decline_challenge(&challenge.id, DeclineReason::Generic)
+							.await?;
 					}
 					_ => {
-						trace!("ignoring event: {:#?}", event);
+						trace!("ignoring event: {event:#?}");
 					}
 				}
 				Ok(())
