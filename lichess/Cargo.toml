@@ -1,0 +1,18 @@
+[package]
+name = "lichess"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chess-core = { path = "../core" }
+chrono = { version = "0.4.26" }
+fern = { version = "0.6.2", features = ["colored"] }
+log = "0.4.20"
+reqwest = { version = "0.11.20", features = ["json"] }
+serde = { version = "1.0.186", features = ["derive"] }
+serde_json = "1.0.105"
+tokio = { version = "1.32.0", features = ["full"] }
