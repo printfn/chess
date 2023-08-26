@@ -104,6 +104,7 @@ impl Client {
 		}
 		let response = request.send().await?;
 		trace!("< {}", response.status());
+		let response = response.error_for_status()?;
 		Ok(response)
 	}
 
