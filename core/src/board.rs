@@ -489,7 +489,7 @@ impl Board {
 			+ self.repr.black_rooks.count() * 5
 			+ self.repr.black_queens.count() * 9;
 
-		return white_value as i32 - black_value as i32;
+		white_value as i32 - black_value as i32
 	}
 }
 

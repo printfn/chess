@@ -186,7 +186,7 @@ impl Client {
 	pub async fn stream_events(&self) -> Result<(), Error> {
 		self.ndjson_request::<Event>(Method::GET, "stream/event")
 			.await?
-			.map_err(|e| Error::from(e))
+			.map_err(Error::from)
 			.try_for_each_concurrent(None, |event| async move {
 				match event {
 					Event::Challenge { challenge } => {
