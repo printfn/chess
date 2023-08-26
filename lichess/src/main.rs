@@ -1,10 +1,7 @@
 use fern::colors::{Color, ColoredLevelConfig};
-use std::error;
 
 #[allow(dead_code)]
 mod api;
-
-type Error = Box<dyn error::Error + Send + Sync + 'static>;
 
 fn setup_logger() -> Result<(), fern::InitError> {
 	let colors_line = ColoredLevelConfig::new()
@@ -42,7 +39,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> eyre::Result<()> {
 	console_subscriber::init();
 	setup_logger()?;
 	let client = api::Client::new().await?;

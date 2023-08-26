@@ -11,6 +11,7 @@ publish = false
 chess-core = { path = "../core" }
 chrono = { version = "0.4.26", default-features = false, features = ["clock"] }
 console-subscriber = "0.1.10"
+eyre = "0.6.8"
 fern = { version = "0.6.2", features = ["colored"] }
 futures = { version = "0.3.28", default-features = false, features = ["std"] }
 log = "0.4.20"

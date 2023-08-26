@@ -8,8 +8,6 @@ use std::{
 	io::{self, Read},
 };
 
-use crate::Error;
-
 #[derive(Deserialize, Debug, Clone)]
 pub struct GetProfileResponse {
 	id: String,
@@ -38,10 +36,24 @@ struct Variant {
 	key: String,
 }
 
+#[derive(Deserialize, Debug, Clone, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+enum ChallengeStatus {
+	Created,
+	Offline,
+	Canceled,
+	Declined,
+	Accepted,
+}
+
 #[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 struct Challenge {
 	id: String,
 	variant: Variant,
+	status: ChallengeStatus,
+	challenger: ChallengeUser,
+	dest_user: Option<ChallengeUser>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -56,7 +68,7 @@ enum Event {
 	GameFinish { game: Game },
 	Challenge { challenge: Challenge },
 	ChallengeCanceled { challenge: Challenge },
-	ChallengeDeclined { challenge: Challenge },
+	ChallengeDeclined { challenge: ChallengeDeclined },
 }
 
 #[derive(serde::Serialize)]
@@ -65,6 +77,11 @@ enum DeclineReason {
 	Generic,
 	#[serde(rename = "standard")]
 	OnlyStandard,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct ChallengeUser {
+	id: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -110,7 +127,7 @@ impl Client {
 		Ok(token.trim().to_string())
 	}
 
-	pub async fn new() -> Result<Self, Error> {
+	pub async fn new() -> eyre::Result<Self> {
 		let token = Self::read_token()?;
 		let client = reqwest::Client::builder()
 			.connect_timeout(time::Duration::from_secs(30))
@@ -131,9 +148,12 @@ impl Client {
 		path: &str,
 		form_data: Option<&T>,
 	) -> reqwest::Result<reqwest::Response> {
+		let mut attempts = 0;
 		loop {
+			attempts += 1;
 			trace!("> {method} https://lichess.org/api/{path}");
 			let lock = self.client.lock().await;
+			tokio::time::sleep(time::Duration::from_millis(500)).await;
 			let mut request = lock
 				.request(method.clone(), format!("https://lichess.org/api/{path}"))
 				.bearer_auth(&self.token)
@@ -143,14 +163,26 @@ impl Client {
 			}
 			let response = request.send().await?;
 			trace!("< {}", response.status());
-			if response.status() == 429 {
-				error!("rate limited, waiting 60 seconds");
-				tokio::time::sleep(time::Duration::from_secs(60)).await;
-				continue;
-			}
 			if let Err(e) = response.error_for_status_ref() {
-				error!("request failed: {}", response.text().await?);
-				return Err(e);
+				match response.status().as_u16() {
+					429 => {
+						error!("rate limited, waiting 60 seconds");
+						tokio::time::sleep(time::Duration::from_secs(60)).await;
+						continue;
+					}
+					404 => {
+						error!("received 404 Not Found, retrying up to 5 times");
+						tokio::time::sleep(time::Duration::from_secs(2)).await;
+						if attempts < 5 {
+							continue;
+						}
+						return Err(e);
+					}
+					_ => {
+						error!("request failed: {}", response.text().await?);
+						return Err(e);
+					}
+				}
 			}
 			return Ok(response);
 		}
@@ -248,14 +280,23 @@ impl Client {
 		Ok(())
 	}
 
-	pub async fn stream_events(&self) -> Result<(), Error> {
+	pub async fn stream_events(&self) -> eyre::Result<()> {
 		self.ndjson_request::<Event>(Method::GET, "stream/event")
 			.await?
-			.map_err(Error::from)
+			.map_err(eyre::Report::from)
 			.try_for_each_concurrent(None, |event| async move {
 				match event {
 					Event::Challenge { challenge } => {
 						info!("received challenge with id '{}'", challenge.id);
+						if challenge.status != ChallengeStatus::Created {
+							// the challenge status might be 'accepted', in which case we handle the game start event
+							// if the challenge status is 'offline', 'canceled' or 'declined' we can ignore it
+							return Ok(());
+						}
+						if challenge.challenger.id == self.player_id {
+							// we created the challenge
+							return Ok(());
+						}
 						if challenge.variant.key.as_str() != "standard" {
 							info!(
 								"declining challenge because it is not standard (variant: {})",
@@ -285,7 +326,7 @@ impl Client {
 		Ok(())
 	}
 
-	pub async fn challenge_ai(&self, level: u8) -> Result<(), Error> {
+	pub async fn challenge_ai(&self, level: u8) -> eyre::Result<()> {
 		let mut params = std::collections::HashMap::new();
 		params.insert("level", level);
 		self.request(Method::POST, "challenge/ai", Some(&params))
@@ -294,7 +335,7 @@ impl Client {
 		Ok(())
 	}
 
-	async fn search_for_move(board: chess_core::Board) -> Result<chess_core::Move, Error> {
+	async fn search_for_move(board: chess_core::Board) -> eyre::Result<chess_core::Move> {
 		info!("searching for move");
 		let (send, recv) = tokio::sync::oneshot::channel();
 		rayon::spawn(move || {
@@ -310,7 +351,7 @@ impl Client {
 		status: &str,
 		moves: &str,
 		playing_as_white: bool,
-	) -> Result<(), Error> {
+	) -> eyre::Result<()> {
 		if status != "created" && status != "started" {
 			info!("ignoring state update: game over (status: {status})");
 			return Ok(());
@@ -339,7 +380,7 @@ impl Client {
 		Ok(())
 	}
 
-	pub async fn play_game(&self, id: &str) -> Result<(), Error> {
+	pub async fn play_game(&self, id: &str) -> eyre::Result<()> {
 		trace!("opening game stream '{id}'");
 		let mut playing_as_white = true;
 		let stream = self
@@ -375,13 +416,13 @@ impl Client {
 		Ok(())
 	}
 
-	pub async fn monitor(&self) -> Result<(), Error> {
+	pub async fn monitor(&self) -> eyre::Result<()> {
 		loop {
 			tokio::time::sleep(time::Duration::from_secs(10)).await;
 			let n = *self.num_games.lock().await;
 			if n < 3 {
-				info!("only {n} games running, adding an AI game");
-				self.challenge_ai(3).await.unwrap();
+				// info!("only {n} games running, adding an AI game");
+				// self.challenge_ai(3).await.unwrap();
 			}
 		}
 	}
