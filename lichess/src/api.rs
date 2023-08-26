@@ -1,3 +1,4 @@
+use core::time;
 use futures::*;
 use log::{debug, info, trace};
 use reqwest::Method;
@@ -78,9 +79,11 @@ impl Client {
 		Ok(token.trim().to_string())
 	}
 
-	pub fn new() -> Result<Self, io::Error> {
+	pub fn new() -> Result<Self, Error> {
 		let token = Self::read_token()?;
-		let client = reqwest::Client::new();
+		let client = reqwest::Client::builder()
+			.connect_timeout(time::Duration::from_secs(30))
+			.build()?;
 		Ok(Self { token, client })
 	}
 
