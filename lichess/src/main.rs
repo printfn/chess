@@ -46,9 +46,6 @@ async fn main() -> Result<(), Error> {
 	console_subscriber::init();
 	setup_logger()?;
 	let client = api::Client::new().await?;
-	client.challenge_ai(3).await?;
-	client.challenge_ai(3).await?;
-	client.challenge_ai(3).await?;
-	client.stream_events().await?;
+	tokio::try_join!(client.stream_events(), client.monitor())?;
 	Ok(())
 }

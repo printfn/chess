@@ -100,6 +100,7 @@ pub struct Client {
 	token: String,
 	client: std::sync::Arc<tokio::sync::Mutex<reqwest::Client>>,
 	player_id: String,
+	num_games: std::sync::Arc<tokio::sync::Mutex<usize>>,
 }
 
 impl Client {
@@ -118,6 +119,7 @@ impl Client {
 			token,
 			player_id: String::new(),
 			client: std::sync::Arc::new(tokio::sync::Mutex::new(client)),
+			num_games: std::sync::Arc::new(tokio::sync::Mutex::new(0)),
 		};
 		this.player_id = this.login().await?;
 		Ok(this)
@@ -268,6 +270,10 @@ impl Client {
 					Event::GameStart { game } => {
 						info!("game started with id '{}'", game.id);
 						self.play_game(&game.id).await?;
+						*self.num_games.lock().await += 1;
+					}
+					Event::GameFinish { .. } => {
+						*self.num_games.lock().await -= 1;
 					}
 					_ => {
 						trace!("ignoring event: {event:#?}");
@@ -367,6 +373,17 @@ impl Client {
 			}
 		}
 		Ok(())
+	}
+
+	pub async fn monitor(&self) -> Result<(), Error> {
+		loop {
+			tokio::time::sleep(time::Duration::from_secs(10)).await;
+			let n = *self.num_games.lock().await;
+			if n < 3 {
+				info!("only {n} games running, adding an AI game");
+				self.challenge_ai(3).await.unwrap();
+			}
+		}
 	}
 }
 
