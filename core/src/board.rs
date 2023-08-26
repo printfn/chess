@@ -193,8 +193,12 @@ impl Board {
 					}
 				}
 				for direction in capture_dirs {
-					let Some(target_pos) = pos.offset(direction) else { continue };
-					let Some((target_player, _)) = self.getp(target_pos) else { continue };
+					let Some(target_pos) = pos.offset(direction) else {
+						continue;
+					};
+					let Some((target_player, _)) = self.getp(target_pos) else {
+						continue;
+					};
 					if target_player == player {
 						continue;
 					}

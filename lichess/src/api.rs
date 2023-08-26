@@ -98,7 +98,7 @@ enum GameUpdate {
 #[derive(Debug)]
 pub struct Client {
 	token: String,
-	client: reqwest::Client,
+	client: std::sync::Arc<tokio::sync::Mutex<reqwest::Client>>,
 	player_id: String,
 }
 
@@ -116,8 +116,8 @@ impl Client {
 			.build()?;
 		let mut this = Self {
 			token,
-			client,
 			player_id: String::new(),
+			client: std::sync::Arc::new(tokio::sync::Mutex::new(client)),
 		};
 		this.player_id = this.login().await?;
 		Ok(this)
@@ -129,22 +129,29 @@ impl Client {
 		path: &str,
 		form_data: Option<&T>,
 	) -> reqwest::Result<reqwest::Response> {
-		trace!("> {method} https://lichess.org/api/{path}");
-		let mut request = self
-			.client
-			.request(method, format!("https://lichess.org/api/{path}"))
-			.bearer_auth(&self.token)
-			.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)");
-		if let Some(data) = form_data {
-			request = request.form(data);
+		loop {
+			trace!("> {method} https://lichess.org/api/{path}");
+			let lock = self.client.lock().await;
+			let mut request = lock
+				.request(method.clone(), format!("https://lichess.org/api/{path}"))
+				.bearer_auth(&self.token)
+				.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)");
+			if let Some(data) = form_data {
+				request = request.form(data);
+			}
+			let response = request.send().await?;
+			trace!("< {}", response.status());
+			if response.status() == 429 {
+				error!("rate limited, waiting 60 seconds");
+				tokio::time::sleep(time::Duration::from_secs(60)).await;
+				continue;
+			}
+			if let Err(e) = response.error_for_status_ref() {
+				error!("request failed: {}", response.text().await?);
+				return Err(e);
+			}
+			return Ok(response);
 		}
-		let response = request.send().await?;
-		trace!("< {}", response.status());
-		if let Err(e) = response.error_for_status_ref() {
-			error!("request failed: {}", response.text().await?);
-			return Err(e);
-		}
-		Ok(response)
 	}
 
 	async fn json_request<T: fmt::Debug>(

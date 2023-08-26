@@ -43,6 +43,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+	console_subscriber::init();
 	setup_logger()?;
 	let client = api::Client::new().await?;
 	client.challenge_ai(3).await?;
