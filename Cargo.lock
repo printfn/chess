@@ -568,6 +568,8 @@ dependencies = [
  "fern",
  "futures",
  "log",
+ "nanorand",
+ "rayon",
  "reqwest",
  "serde",
  "serde_json",

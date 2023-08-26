@@ -1,6 +1,6 @@
 use core::time;
 use futures::*;
-use log::{debug, info, trace};
+use log::{debug, error, info, trace};
 use reqwest::Method;
 use serde::Deserialize;
 use std::{
@@ -12,6 +12,7 @@ use crate::Error;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct GetProfileResponse {
+	id: String,
 	pub username: String,
 	pub title: Option<String>,
 }
@@ -66,10 +67,39 @@ enum DeclineReason {
 	OnlyStandard,
 }
 
+#[derive(Deserialize, Debug, Clone)]
+struct GameEventPlayer {
+	#[serde(default)]
+	id: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+struct GameStateEvent {
+	moves: String,
+	status: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(tag = "type", rename_all = "camelCase")]
+enum GameUpdate {
+	GameFull {
+		white: GameEventPlayer,
+		black: GameEventPlayer,
+		state: GameStateEvent,
+	},
+	GameState {
+		moves: String,
+		status: String,
+	},
+	ChatLine,
+	OpponentGone,
+}
+
 #[derive(Debug)]
 pub struct Client {
 	token: String,
 	client: reqwest::Client,
+	player_id: String,
 }
 
 impl Client {
@@ -79,12 +109,18 @@ impl Client {
 		Ok(token.trim().to_string())
 	}
 
-	pub fn new() -> Result<Self, Error> {
+	pub async fn new() -> Result<Self, Error> {
 		let token = Self::read_token()?;
 		let client = reqwest::Client::builder()
 			.connect_timeout(time::Duration::from_secs(30))
 			.build()?;
-		Ok(Self { token, client })
+		let mut this = Self {
+			token,
+			client,
+			player_id: String::new(),
+		};
+		this.player_id = this.login().await?;
+		Ok(this)
 	}
 
 	async fn request<T: serde::Serialize>(
@@ -104,7 +140,10 @@ impl Client {
 		}
 		let response = request.send().await?;
 		trace!("< {}", response.status());
-		let response = response.error_for_status()?;
+		if let Err(e) = response.error_for_status_ref() {
+			error!("request failed: {}", response.text().await?);
+			return Err(e);
+		}
 		Ok(response)
 	}
 
@@ -129,7 +168,7 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> reqwest::Result<impl TryStream<Ok = T, Error = io::Error>>
+	) -> reqwest::Result<impl TryStream<Ok = T, Error = io::Error, Item = Result<T, io::Error>>>
 	where
 		for<'de> T: serde::Deserialize<'de>,
 	{
@@ -145,13 +184,19 @@ impl Client {
 					trace!("< keep-alive");
 					return Ok(None);
 				}
-				let value: T = serde_json::from_str(&line)?;
-				trace!("< received ndjson value: {:#?}", value);
+				let value = match serde_json::from_str::<T>(&line) {
+					Ok(value) => value,
+					Err(e) => {
+						error!("failed to parse ndjson value '{line}': {e}");
+						return Err(e.into());
+					}
+				};
+				trace!("< received ndjson value: {value:#?}");
 				Ok(Some(value))
 			}))
 	}
 
-	pub async fn login(&self) -> reqwest::Result<()> {
+	pub async fn login(&self) -> reqwest::Result<String> {
 		info!("logging in to Lichess (using bearer token auth)");
 		let profile: GetProfileResponse =
 			self.json_request(reqwest::Method::GET, "account").await?;
@@ -165,6 +210,13 @@ impl Client {
 			info!("successfully upgraded to bot account");
 		}
 		info!("successfully logged in as {}", profile.username);
+		Ok(profile.id)
+	}
+
+	async fn accept_challenge(&self, id: &str) -> reqwest::Result<()> {
+		debug!("accepting challenge {}", id);
+		self.json_request::<Ok>(Method::POST, &format!("challenge/{id}/accept"))
+			.await?;
 		Ok(())
 	}
 
@@ -204,8 +256,11 @@ impl Client {
 								.await?;
 							return Ok(());
 						}
-						self.decline_challenge(&challenge.id, DeclineReason::Generic)
-							.await?;
+						self.accept_challenge(&challenge.id).await?;
+					}
+					Event::GameStart { game } => {
+						info!("game started with id '{}'", game.id);
+						self.play_game(&game.id).await?;
 					}
 					_ => {
 						trace!("ignoring event: {event:#?}");
@@ -216,4 +271,99 @@ impl Client {
 			.await?;
 		Ok(())
 	}
+
+	pub async fn challenge_ai(&self, level: u8) -> Result<(), Error> {
+		let mut params = std::collections::HashMap::new();
+		params.insert("level", level);
+		self.request(Method::POST, "challenge/ai", Some(&params))
+			.await?;
+		info!("successfully challenged AI (level {level})");
+		Ok(())
+	}
+
+	async fn search_for_move(board: chess_core::Board) -> Result<chess_core::Move, Error> {
+		info!("searching for move");
+		let (send, recv) = tokio::sync::oneshot::channel();
+		rayon::spawn(move || {
+			let mov = chess_core::search(&board, 3, true, random_u32).unwrap();
+			send.send(mov).unwrap();
+		});
+		return Ok(recv.await?);
+	}
+
+	async fn handle_state_update(
+		&self,
+		game_id: &str,
+		status: &str,
+		moves: &str,
+		playing_as_white: bool,
+	) -> Result<(), Error> {
+		if status != "created" && status != "started" {
+			info!("ignoring state update: game over (status: {status})");
+			return Ok(());
+		}
+		let mut board = chess_core::Board::initial_position();
+		if !moves.is_empty() {
+			for mov in moves.split(' ') {
+				let mov = chess_core::Move::from_uci(mov);
+				board.apply_move(mov);
+			}
+		}
+		let my_color = if playing_as_white {
+			chess_core::Player::White
+		} else {
+			chess_core::Player::Black
+		};
+		if board.current_player != my_color {
+			info!("ignoring state update: not our turn");
+			return Ok(());
+		}
+		let mov = Self::search_for_move(board).await?;
+		let mov_uci = mov.to_uci();
+		info!("found move: {mov_uci}");
+		self.json_request::<Ok>(Method::POST, &format!("bot/game/{game_id}/move/{mov_uci}"))
+			.await?;
+		Ok(())
+	}
+
+	pub async fn play_game(&self, id: &str) -> Result<(), Error> {
+		trace!("opening game stream '{id}'");
+		let mut playing_as_white = true;
+		let stream = self
+			.ndjson_request::<GameUpdate>(Method::GET, &format!("bot/game/stream/{id}"))
+			.await?;
+		pin_mut!(stream);
+		while let Some(update) = stream.try_next().await? {
+			match update {
+				GameUpdate::GameFull {
+					white,
+					black,
+					state,
+				} => {
+					if white.id == self.player_id {
+						playing_as_white = true;
+					} else if black.id == self.player_id {
+						playing_as_white = false;
+					} else {
+						error!("attempted to play game between players '{}' and '{}' while logged in as '{}'", white.id, black.id, self.player_id);
+					}
+					self.handle_state_update(id, &state.status, &state.moves, playing_as_white)
+						.await?;
+				}
+				GameUpdate::GameState { moves, status } => {
+					self.handle_state_update(id, &status, &moves, playing_as_white)
+						.await?
+				}
+				_ => {
+					trace!("ignoring game update: {update:#?}");
+				}
+			}
+		}
+		Ok(())
+	}
+}
+
+fn random_u32() -> u32 {
+	let mut rng = nanorand::WyRand::new();
+	nanorand::Rng::generate(&mut rng)
 }

@@ -96,6 +96,29 @@ impl Move {
 			checkmate,
 		}
 	}
+
+	pub fn from_uci(uci: &str) -> Self {
+		let from_str = uci.get(0..2).unwrap();
+		let from = Pos::try_from(from_str).unwrap();
+		let to_str = uci.get(2..4).unwrap();
+		let to = Pos::try_from(to_str).unwrap();
+		let promotion = uci.chars().nth(4).map(|c| Piece::from_ascii_char(c).1);
+		Self {
+			from,
+			to,
+			promotion,
+		}
+	}
+
+	pub fn to_uci(&self) -> String {
+		let mut uci = String::with_capacity(5);
+		uci.push_str(self.from.to_string().as_str());
+		uci.push_str(self.to.to_string().as_str());
+		if let Some(promotion) = self.promotion {
+			uci.push(promotion.ascii_char(crate::Player::Black));
+		}
+		uci
+	}
 }
 
 impl fmt::Display for FormattedMove {
