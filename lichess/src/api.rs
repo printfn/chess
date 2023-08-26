@@ -193,9 +193,12 @@ impl Client {
 			.try_for_each_concurrent(None, |event| async move {
 				match event {
 					Event::Challenge { challenge } => {
-						info!("received challenge: {challenge:#?}");
+						info!("received challenge with id '{}'", challenge.id);
 						if challenge.variant.key.as_str() != "standard" {
-							info!("declining challenge because it is not standard");
+							info!(
+								"declining challenge because it is not standard (variant: {})",
+								challenge.variant.key
+							);
 							self.decline_challenge(&challenge.id, DeclineReason::OnlyStandard)
 								.await?;
 							return Ok(());
