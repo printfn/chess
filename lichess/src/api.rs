@@ -1,12 +1,8 @@
-use core::time;
-use futures::*;
+use futures::{pin_mut, AsyncBufReadExt, TryStream, TryStreamExt};
 use log::{debug, error, info, trace};
 use reqwest::Method;
 use serde::Deserialize;
-use std::{
-	fmt, fs,
-	io::{self, Read},
-};
+use std::{fmt, fs, io, time};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct GetProfileResponse {
@@ -54,27 +50,43 @@ struct Challenge {
 	status: ChallengeStatus,
 	challenger: ChallengeUser,
 	speed: String,
+	#[allow(dead_code)]
 	dest_user: Option<ChallengeUser>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 struct ChallengeDeclined {
+	#[allow(dead_code)]
 	id: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
 enum Event {
-	GameStart { game: Game },
-	GameFinish { game: Game },
-	Challenge { challenge: Challenge },
-	ChallengeCanceled { challenge: Challenge },
-	ChallengeDeclined { challenge: ChallengeDeclined },
+	GameStart {
+		game: Game,
+	},
+	#[allow(dead_code)]
+	GameFinish {
+		game: Game,
+	},
+	Challenge {
+		challenge: Challenge,
+	},
+	#[allow(dead_code)]
+	ChallengeCanceled {
+		challenge: Challenge,
+	},
+	#[allow(dead_code)]
+	ChallengeDeclined {
+		challenge: ChallengeDeclined,
+	},
 }
 
 #[derive(serde::Serialize)]
 enum DeclineReason {
 	#[serde(rename = "generic")]
+	#[allow(dead_code)]
 	Generic,
 	#[serde(rename = "standard")]
 	OnlyStandard,
@@ -127,9 +139,7 @@ pub struct Client {
 
 impl Client {
 	fn read_token() -> Result<String, io::Error> {
-		let mut token = String::new();
-		fs::File::open("token.txt")?.read_to_string(&mut token)?;
-		Ok(token.trim().to_string())
+		Ok(fs::read_to_string("token.txt")?.trim().to_string())
 	}
 
 	pub async fn new() -> eyre::Result<Self> {
@@ -350,6 +360,7 @@ impl Client {
 		Ok(())
 	}
 
+	#[allow(dead_code)]
 	pub async fn challenge_ai(&self, level: u8) -> eyre::Result<()> {
 		let mut params = std::collections::HashMap::new();
 		params.insert("level", level);
@@ -366,7 +377,7 @@ impl Client {
 			let mov = chess_core::search(&board, 3, true, random_u32).unwrap();
 			send.send(mov).unwrap();
 		});
-		return Ok(recv.await?);
+		Ok(recv.await?)
 	}
 
 	async fn handle_state_update(

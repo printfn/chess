@@ -1,6 +1,5 @@
 use fern::colors::{Color, ColoredLevelConfig};
 
-#[allow(dead_code)]
 mod api;
 
 fn setup_logger() -> Result<(), fern::InitError> {
