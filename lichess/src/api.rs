@@ -214,18 +214,28 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> reqwest::Result<impl TryStream<Ok = T, Error = io::Error, Item = Result<T, io::Error>>>
+	) -> eyre::Result<impl TryStream<Ok = T, Error = eyre::Error, Item = Result<T, eyre::Error>>>
 	where
 		for<'de> T: serde::Deserialize<'de>,
 	{
-		Ok(self
+		let stream = self
 			.request::<()>(method, path, None)
 			.await?
 			.bytes_stream()
 			.map_err(|e| io::Error::new(io::ErrorKind::Other, e))
 			.into_async_read()
 			.lines()
+			.map_err(eyre::Report::from);
+		let stream = tokio_stream::StreamExt::timeout(stream, time::Duration::from_secs(10));
+		Ok(stream
+			.map_err(|e| {
+				eyre::Report::wrap_err(
+					e.into(),
+					"did not receive a keep-alive from Lichess in time",
+				)
+			})
 			.try_filter_map(|line| async move {
+				let line = line?;
 				if line.is_empty() {
 					trace!("< keep-alive");
 					return Ok(None);
@@ -288,7 +298,6 @@ impl Client {
 	pub async fn stream_events(&self) -> eyre::Result<()> {
 		self.ndjson_request::<Event>(Method::GET, "stream/event")
 			.await?
-			.map_err(eyre::Report::from)
 			.try_for_each_concurrent(None, |event| async move {
 				match event {
 					Event::Challenge { challenge } => {
