@@ -1,0 +1,19 @@
+# Before starting this service, make sure the Lichess bot account token is
+# stored in a `token.txt` file in the working directory.
+
+# $ cat token.txt
+# lip_XXXXXXXXXXXXXXXXXXXX
+
+[Unit]
+Description=Rust Lichess Bot
+After=network-online.target
+
+[Service]
+ExecStart=/home/user/chess/target/release/lichess
+WorkingDirectory=/home/user/chess/lichess
+Restart=always
+User=user
+Group=user
+
+[Install]
+WantedBy=multi-user.target
