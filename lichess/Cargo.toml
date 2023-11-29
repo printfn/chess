@@ -9,17 +9,17 @@ publish = false
 
 [dependencies]
 chess-core = { path = "../core" }
-chrono = { version = "0.4.26", default-features = false, features = ["clock"] }
-console-subscriber = "0.1.10"
-eyre = "0.6.8"
+chrono = { version = "0.4.31", default-features = false, features = ["clock"] }
+console-subscriber = "0.2.0"
+eyre = "0.6.9"
 fern = { version = "0.6.2", features = ["colored"] }
-futures = { version = "0.3.28", default-features = false, features = ["std"] }
+futures = { version = "0.3.29", default-features = false, features = ["std"] }
 log = "0.4.20"
 nanorand = "0.7.0"
-rayon = "1.7.0"
-reqwest = { version = "0.11.20", features = ["json", "stream"] }
-serde = { version = "1.0.186", features = ["derive"] }
-serde_json = "1.0.105"
-tokio = { version = "1.32.0", features = ["macros", "rt-multi-thread", "tracing"] }
+rayon = "1.8.0"
+reqwest = { version = "0.11.22", features = ["json", "stream"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
+tokio = { version = "1.34.0", features = ["macros", "rt-multi-thread", "tracing"] }
 tokio-stream = "0.1.14"
-tracing = "0.1.37"
+tracing = "0.1.40"

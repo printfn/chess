@@ -6,4 +6,4 @@ license = "AGPL-3.0-or-later"
 publish = false
 
 [dev-dependencies]
-rayon = "1.7.0"
+rayon = "1.8.0"
