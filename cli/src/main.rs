@@ -2,8 +2,7 @@ use chess_core::{search, Board};
 use std::{io::Write, ops};
 
 fn random_u32() -> u32 {
-	let mut rng = nanorand::WyRand::new();
-	nanorand::Rng::generate(&mut rng)
+	rand::random()
 }
 
 fn main() {

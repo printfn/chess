@@ -9,4 +9,4 @@ publish = false
 
 [dependencies]
 chess-core = { path = "../core" }
-nanorand = "0.7.0"
+rand = "0.8.5"
