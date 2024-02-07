@@ -25,7 +25,7 @@
 	}
 </script>
 
-<Modal title="Promotion" open={Boolean(onExit)} permanent>
+<Modal title="Promotion" open={Boolean(onExit)} dismissable={false}>
 	<Label>
 		Choose which piece to promote to:
 		<Select class="mt-2" items={pieces} placeholder="" bind:value={piece} />
