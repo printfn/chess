@@ -1,7 +1,10 @@
+// use base64::{engine::general_purpose::STANDARD, Engine};
 use futures::{pin_mut, AsyncBufReadExt, TryStream, TryStreamExt};
 use log::{debug, error, info, trace};
+// use rand::{thread_rng, RngCore};
 use reqwest::Method;
 use serde::Deserialize;
+// use sha2::Digest;
 use std::{fmt, fs, io, time};
 
 #[derive(Deserialize, Debug, Clone)]
@@ -137,16 +140,70 @@ pub struct Client {
 	num_games: std::sync::Arc<tokio::sync::Mutex<usize>>,
 }
 
+const SCOPES: &[&str] = &[
+	"preference:read",
+	"preference:write",
+	"challenge:read",
+	"challenge:write",
+	"challenge:bulk",
+	"bot:play",
+];
+
 impl Client {
-	fn read_token() -> Result<String, io::Error> {
-		Ok(fs::read_to_string("token.txt")?.trim().to_string())
+	async fn get_token(_client: &reqwest::Client) -> eyre::Result<String> {
+		Ok(match fs::metadata("token.txt") {
+			Err(e) if e.kind() == io::ErrorKind::NotFound => {
+				error!(
+					"could not find a `token.txt` file from which to read a valid Lichess token"
+				);
+				let mut url = String::from("https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29");
+				for &scope in SCOPES {
+					url.push_str("&scopes%5b%5d=");
+					url.push_str(&String::from(scope).replace(':', "%3a"));
+				}
+				info!("navigate to this URL to create a new token: {url}");
+				panic!();
+				/*info!("could not find existing token in `token.txt`, initiating OAuth login...");
+				let mut code_verifier_bytes = [0; 96];
+				thread_rng().fill_bytes(&mut code_verifier_bytes[..]);
+				let hash = hex::encode(sha2::Sha256::digest(STANDARD.encode(code_verifier_bytes)));
+				let mut state_bytes = [0; 96];
+				thread_rng().fill_bytes(&mut state_bytes);
+				let state = STANDARD.encode(state_bytes);
+				trace!("> GET https://lichess.org/oauth");
+				let response = client
+					.get("https://lichess.org/oauth")
+					.query(&[
+						("response_type", "code"),
+						("client_id", "rust-chess-bot (github.com/printfn/chess)"),
+						("redirect_uri", "http://localhost"),
+						("code_challenge_method", "S256"),
+						("code_challenge", &hash),
+						("scope", "preference:read preference:write challenge:read challenge:write challenge:bulk bot:play"),
+						("state", &state),
+					]).build()?;
+				println!("Navigate to this URL to log in: {}", response.url());
+				// trace!("< {}", response.status());
+				todo!()*/
+			}
+			Err(e) => {
+				return Err(
+					eyre::Report::from(e).wrap_err("failed to read lichess token from `token.txt`")
+				);
+			}
+			Ok(_) => {
+				trace!("reading lichess token from `token.txt`");
+				fs::read_to_string("token.txt")?.trim().to_string()
+			}
+		})
 	}
 
 	pub async fn new() -> eyre::Result<Self> {
-		let token = Self::read_token()?;
 		let client = reqwest::Client::builder()
 			.connect_timeout(time::Duration::from_secs(30))
+			.user_agent("rust-chess-bot (github.com/printfn/chess)")
 			.build()?;
+		let token = Self::get_token(&client).await?;
 		let mut this = Self {
 			token,
 			player_id: String::new(),
@@ -171,8 +228,7 @@ impl Client {
 			tokio::time::sleep(time::Duration::from_millis(500)).await;
 			let mut request = lock
 				.request(method.clone(), format!("https://lichess.org/api/{path}"))
-				.bearer_auth(&self.token)
-				.header("User-Agent", "rust-chess-bot (github.com/printfn/chess)");
+				.bearer_auth(&self.token);
 			if let Some(data) = form_data {
 				request = request.form(data);
 			}
