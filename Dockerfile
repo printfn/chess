@@ -1,9 +1,10 @@
-FROM rust:alpine as builder
+FROM --platform=$BUILDPLATFORM rust:bookworm as builder
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 WORKDIR /usr/src/chess
-RUN apk add musl-dev
 COPY . .
-RUN cargo install --path lichess
+RUN ./docker-build.sh $TARGETPLATFORM
 
-FROM alpine:latest
+FROM debian:bookworm
 COPY --from=builder /usr/local/cargo/bin/lichess /usr/local/bin/lichess
 CMD ["lichess"]
