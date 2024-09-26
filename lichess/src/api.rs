@@ -5,7 +5,7 @@ use log::{debug, error, info, trace};
 use reqwest::Method;
 use serde::Deserialize;
 // use sha2::Digest;
-use std::{fmt, fs, io, time};
+use std::{env, fmt, fs, io, time};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct GetProfileResponse {
@@ -161,11 +161,14 @@ const SCOPES: &[&str] = &[
 
 impl Client {
 	async fn get_token(_client: &reqwest::Client) -> eyre::Result<String> {
+		trace!("reading $LICHESS_TOKEN");
+		if let Ok(token) = env::var("LICHESS_TOKEN") {
+			return Ok(token.trim().to_string());
+		}
+		trace!("reading file `token.txt`");
 		Ok(match fs::metadata("token.txt") {
 			Err(e) if e.kind() == io::ErrorKind::NotFound => {
-				error!(
-					"could not find a `token.txt` file from which to read a valid Lichess token"
-				);
+				error!("could not find a valid Lichess token: please set either the $LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory");
 				let mut url = String::from("https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29");
 				for &scope in SCOPES {
 					url.push_str("&scopes%5b%5d=");
