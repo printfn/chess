@@ -21,8 +21,18 @@ impl GetProfileResponse {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[must_use]
 pub struct Ok {
 	pub ok: bool,
+}
+
+impl Ok {
+	fn ok(&self) -> eyre::Result<()> {
+		match self.ok {
+			true => Ok(()),
+			false => eyre::bail!("API call did not return success"),
+		}
+	}
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -259,12 +269,9 @@ impl Client {
 		}
 	}
 
-	async fn json_request<T: fmt::Debug>(
-		&self,
-		method: reqwest::Method,
-		path: &str,
-	) -> reqwest::Result<T>
+	async fn json_request<T>(&self, method: reqwest::Method, path: &str) -> reqwest::Result<T>
 	where
+		T: fmt::Debug,
 		for<'de> T: serde::Deserialize<'de>,
 	{
 		let resp = self
@@ -276,12 +283,13 @@ impl Client {
 		Ok(resp)
 	}
 
-	async fn ndjson_request<T: fmt::Debug>(
+	async fn ndjson_request<T>(
 		&self,
 		method: reqwest::Method,
 		path: &str,
 	) -> eyre::Result<impl TryStream<Ok = T, Error = eyre::Error, Item = Result<T, eyre::Error>>>
 	where
+		T: fmt::Debug,
 		for<'de> T: serde::Deserialize<'de>,
 	{
 		let stream = self
@@ -318,7 +326,7 @@ impl Client {
 			}))
 	}
 
-	pub async fn login(&self) -> reqwest::Result<String> {
+	pub async fn login(&self) -> eyre::Result<String> {
 		info!("logging in to Lichess (using bearer token auth)");
 		let profile: GetProfileResponse =
 			self.json_request(reqwest::Method::GET, "account").await?;
@@ -328,25 +336,23 @@ impl Client {
 				profile.username
 			);
 			self.json_request::<Ok>(reqwest::Method::POST, "bot/account/upgrade")
-				.await?;
+				.await?
+				.ok()?;
 			info!("successfully upgraded to bot account");
 		}
 		info!("successfully logged in as {}", profile.username);
 		Ok(profile.id)
 	}
 
-	async fn accept_challenge(&self, id: &str) -> reqwest::Result<()> {
+	async fn accept_challenge(&self, id: &str) -> eyre::Result<()> {
 		debug!("accepting challenge {}", id);
 		self.json_request::<Ok>(Method::POST, &format!("challenge/{id}/accept"))
-			.await?;
+			.await?
+			.ok()?;
 		Ok(())
 	}
 
-	async fn decline_challenge(
-		&self,
-		id: &str,
-		decline_reason: DeclineReason,
-	) -> reqwest::Result<()> {
+	async fn decline_challenge(&self, id: &str, decline_reason: DeclineReason) -> eyre::Result<()> {
 		debug!("declining challenge {}", id);
 		let mut params = std::collections::HashMap::new();
 		params.insert("reason", decline_reason);
@@ -357,7 +363,8 @@ impl Client {
 		)
 		.await?
 		.json::<Ok>()
-		.await?;
+		.await?
+		.ok()?;
 		Ok(())
 	}
 
@@ -467,7 +474,8 @@ impl Client {
 		let mov_uci = mov.to_uci();
 		info!("found move: {mov_uci}");
 		self.json_request::<Ok>(Method::POST, &format!("bot/game/{game_id}/move/{mov_uci}"))
-			.await?;
+			.await?
+			.ok()?;
 		Ok(())
 	}
 

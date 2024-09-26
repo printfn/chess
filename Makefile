@@ -7,5 +7,5 @@ web:
 fix:
 	cargo fmt
 	cargo clippy -- -D warnings
-	cd web && yarn format
-	cd web && yarn lint
+	cd web && npm run format
+	cd web && npm run lint

@@ -11,18 +11,18 @@ publish = false
 base64 = "0.22.1"
 chess-core = { path = "../core" }
 chrono = { version = "0.4.38", default-features = false, features = ["clock"] }
-console-subscriber = "0.3.0"
+console-subscriber = "0.4.0"
 eyre = "0.6.12"
 fern = { version = "0.6.2", features = ["colored"] }
 futures = { version = "0.3.30", default-features = false, features = ["std"] }
 hex = "0.4.3"
-log = "0.4.21"
+log = "0.4.22"
 rand = "0.8.5"
 rayon = "1.10.0"
-reqwest = { version = "0.12.4", default-features = false, features = ["json", "stream", "rustls-tls"] }
-serde = { version = "1.0.203", features = ["derive"] }
-serde_json = "1.0.117"
+reqwest = { version = "0.12.7", default-features = false, features = ["json", "stream", "rustls-tls"] }
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
 sha2 = "0.10.8"
-tokio = { version = "1.38.0", features = ["macros", "rt-multi-thread", "tracing"] }
-tokio-stream = "0.1.15"
+tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread", "tracing"] }
+tokio-stream = "0.1.16"
 tracing = "0.1.40"
