@@ -1,5 +1,5 @@
 // use base64::{engine::general_purpose::STANDARD, Engine};
-use futures::{pin_mut, AsyncBufReadExt, TryStream, TryStreamExt};
+use futures::{pin_mut, AsyncBufReadExt, Stream, TryStreamExt};
 use log::{debug, error, info, trace};
 // use rand::{thread_rng, RngCore};
 use reqwest::Method;
@@ -290,7 +290,7 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> eyre::Result<impl TryStream<Ok = T, Error = eyre::Error, Item = Result<T, eyre::Error>>>
+	) -> eyre::Result<impl Stream<Item = Result<T, eyre::Error>>>
 	where
 		T: fmt::Debug,
 		for<'de> T: serde::Deserialize<'de>,
