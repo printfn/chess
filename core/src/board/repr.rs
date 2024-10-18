@@ -137,14 +137,18 @@ impl Repr {
 		match player {
 			Player::White => {
 				self.white_pawns
-					| self.white_knights | self.white_bishops
-					| self.white_rooks | self.white_queens
+					| self.white_knights
+					| self.white_bishops
+					| self.white_rooks
+					| self.white_queens
 					| Bitboard::single_bit(self.white_king)
 			}
 			Player::Black => {
 				self.black_pawns
-					| self.black_knights | self.black_bishops
-					| self.black_rooks | self.black_queens
+					| self.black_knights
+					| self.black_bishops
+					| self.black_rooks
+					| self.black_queens
 					| Bitboard::single_bit(self.black_king)
 			}
 		}

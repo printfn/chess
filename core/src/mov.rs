@@ -28,7 +28,11 @@ impl Move {
 		board.getp(self.to).is_some()
 	}
 
-	pub fn format(self, board: Board, all_moves: &[Move]) -> impl fmt::Display + Send + Sync {
+	pub fn format(
+		self,
+		board: Board,
+		all_moves: &[Move],
+	) -> impl fmt::Display + Send + Sync + use<> {
 		let (player, piece) = board.getp(self.from).expect("no piece at from");
 
 		let (check, checkmate) = {
