@@ -4,23 +4,28 @@
 	import type { Api } from 'chessground/api';
 	import { Chessground } from 'chessground';
 
-	export let config: Config;
-	let className = '';
-	export { className as class };
+	interface Props {
+		config: Config;
+		class?: string;
+	}
+
+	let { config, class: className = '' }: Props = $props();
 
 	let chessboard: HTMLDivElement;
 	let api: Api;
 
-	$: {
+	$effect(() => {
 		if (api) {
+			console.log('api.set(config)', config);
 			api.set(config);
 		} else if (chessboard) {
+			console.log('api = Chessground');
 			api = Chessground(chessboard, config);
 		}
-	}
+	});
 </script>
 
-<div bind:this={chessboard} class={className} />
+<div bind:this={chessboard} class={className}></div>
 
 <style>
 	:global(cg-container) {

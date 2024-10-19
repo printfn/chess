@@ -2,7 +2,11 @@
 	import { A, Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
 	import { theme, depth, enableQuiescence, Themes, showMaterialDifference } from '../lib/settings';
 
-	export let open = false;
+	interface Props {
+		open: boolean;
+	}
+
+	let { open = $bindable(false) }: Props = $props();
 
 	const themes = Object.entries(Themes).map(([k, v]) => ({ name: v, value: k }));
 
