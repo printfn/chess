@@ -168,7 +168,14 @@ impl Client {
 		trace!("reading file `token.txt`");
 		Ok(match fs::metadata("token.txt") {
 			Err(e) if e.kind() == io::ErrorKind::NotFound => {
-				error!("could not find a valid Lichess token: please set either the $LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory");
+				let cwd = match env::current_dir() {
+					Ok(d) => format!(" {d:?}"),
+					Err(e) => {
+						error!("failed to get current working directory: {e}");
+						"".to_string()
+					}
+				};
+				error!("could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{cwd}");
 				let mut url = String::from("https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29");
 				for &scope in SCOPES {
 					url.push_str("&scopes%5b%5d=");
