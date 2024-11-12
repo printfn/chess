@@ -2,6 +2,8 @@
 	import { theme, type Theme } from '$lib/settings';
 	import '../app.css';
 
+	let { children } = $props();
+
 	function handleThemeUpdate(theme: Theme) {
 		const root = document.querySelector(':root') as HTMLElement;
 		if (!root) {
@@ -11,7 +13,7 @@
 		localStorage.setItem('theme', theme);
 	}
 
-	$: handleThemeUpdate($theme);
+	$effect(() => handleThemeUpdate($theme));
 </script>
 
-<slot />
+{@render children?.()}
