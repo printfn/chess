@@ -2,10 +2,11 @@
 	import Board from '$lib/board/board.svelte';
 	import PromotionModal from './PromotionModal.svelte';
 	import Settings from './Settings.svelte';
-	import { applyMove, calculateMove, getGameState, type PromotionPiece } from '$lib/wasm';
+	import GameOverModal from './GameOverModal.svelte';
+	import { applyMove, calculateMove, getGameState } from '$lib/wasm';
 	import type { Config } from 'chessground/config';
 	import type { Key } from 'chessground/types';
-	import { Modal, Button, Heading, P } from 'flowbite-svelte';
+	import { Button, Heading, P } from 'flowbite-svelte';
 	import { enableQuiescence, depth, showMaterialDifference } from '$lib/settings';
 
 	const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -14,15 +15,11 @@
 	let perspective: 'white' | 'black' = 'white';
 	let lastMove: [Key, Key] | undefined = undefined;
 	let block = false;
-	let gameOverModal = false;
 	let settingsModal: Settings;
 	let promotionModal: PromotionModal;
+	let gameOverModal: GameOverModal;
 
 	$: gameState = getGameState(fen);
-	$: gameOverTitle = gameState.check ? 'Checkmate' : 'Stalemate';
-	$: gameOverMessage = gameState.check
-		? `${gameState.currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate.`
-		: 'The game is drawn by stalemate.';
 
 	let config: Config;
 	$: {
@@ -52,14 +49,14 @@
 						fen = nextPos;
 						block = true;
 						if (getGameState(nextPos).dests.size === 0) {
-							gameOverModal = true;
+							gameOverModal.open();
 							return;
 						}
 						const result = await calculateMove(nextPos, $depth, $enableQuiescence);
 						fen = result.fen;
 						lastMove = [result.from, result.to];
 						if (getGameState(result.fen).dests.size === 0) {
-							gameOverModal = true;
+							gameOverModal.open();
 							return;
 						}
 						block = false;
@@ -108,12 +105,6 @@
 	</div>
 </div>
 
-<Modal title={gameOverTitle} bind:open={gameOverModal} autoclose outsideclose>
-	<P>{gameOverMessage}</P>
-	<svelte:fragment slot="footer">
-		<Button class="ml-auto">Close</Button>
-	</svelte:fragment>
-</Modal>
-
+<GameOverModal bind:this={gameOverModal} check={gameState.check} currentPlayer={gameState.currentPlayer} />
 <PromotionModal bind:this={promotionModal} />
 <Settings bind:this={settingsModal} />
