@@ -4,7 +4,7 @@
 	import type { Api } from 'chessground/api';
 	import { Chessground } from 'chessground';
 
-	interface Props {
+	type Props = {
 		config: Config;
 		class?: string;
 	}

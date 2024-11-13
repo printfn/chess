@@ -2,11 +2,11 @@
 	import { A, Button, Label, Modal, Select, Toggle } from 'flowbite-svelte';
 	import { theme, depth, enableQuiescence, Themes, showMaterialDifference } from '../lib/settings';
 
-	interface Props {
-		open: boolean;
-	}
+	let isOpen = $state(false);
 
-	let { open = $bindable(false) }: Props = $props();
+	export function open() {
+		isOpen = true;
+	}
 
 	const themes = Object.entries(Themes).map(([k, v]) => ({ name: v, value: k }));
 
@@ -16,7 +16,7 @@
 	}
 </script>
 
-<Modal title="Settings" bind:open autoclose outsideclose>
+<Modal title="Settings" bind:open={isOpen} autoclose outsideclose>
 	<Label>
 		Theme
 		<Select class="mt-2" bind:value={$theme} placeholder="" items={themes} />

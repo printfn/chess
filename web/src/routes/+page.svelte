@@ -15,8 +15,8 @@
 	let lastMove: [Key, Key] | undefined = undefined;
 	let block = false;
 	let gameOverModal = false;
-	let settingsModal = false;
-	let promote: () => Promise<PromotionPiece>;
+	let settingsModal: Settings;
+	let promotionModal: PromotionModal;
 
 	$: gameState = getGameState(fen);
 	$: gameOverTitle = gameState.check ? 'Checkmate' : 'Stalemate';
@@ -46,7 +46,7 @@
 						lastMove = [from, to];
 						let nextPos = applyMove(fen, from, to);
 						if (!nextPos) {
-							const promotion = await promote();
+							const promotion = await promotionModal.promote();
 							nextPos = applyMove(fen, from, to, promotion);
 						}
 						fen = nextPos;
@@ -100,7 +100,7 @@
 		<Board {config} class="aspect-square" />
 		<div class="grid gap-2 my-2">
 			<Button outline on:click={flip}>Flip</Button>
-			<Button outline on:click={() => (settingsModal = true)}>Settings</Button>
+			<Button outline on:click={() => settingsModal.open()}>Settings</Button>
 			<Button outline on:click={e => newGame(e, 'white')}>New Game (White)</Button>
 			<Button outline on:click={e => newGame(e, 'black')}>New Game (Black)</Button>
 			<Button outline on:click={e => newGame(e, 'random')}>New Game (Random)</Button>
@@ -115,5 +115,5 @@
 	</svelte:fragment>
 </Modal>
 
-<PromotionModal bind:promote />
-<Settings bind:open={settingsModal} />
+<PromotionModal bind:this={promotionModal} />
+<Settings bind:this={settingsModal} />

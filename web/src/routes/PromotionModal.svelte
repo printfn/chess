@@ -2,8 +2,8 @@
 	import { Button, Label, Modal, Select } from 'flowbite-svelte';
 	import type { PromotionPiece } from '../lib/wasm';
 
-	let piece: PromotionPiece = 'Q';
-	let onExit: ((value: PromotionPiece) => void) | undefined = undefined;
+	let piece: PromotionPiece = $state('Q');
+	let onExit: ((value: PromotionPiece) => void) | undefined = $state(undefined);
 
 	const pieces = [
 		{ value: 'Q', name: 'Queen' },
