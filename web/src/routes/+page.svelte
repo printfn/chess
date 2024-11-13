@@ -11,60 +11,56 @@
 
 	const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-	let fen = initialPosition;
-	let perspective: 'white' | 'black' = 'white';
-	let lastMove: [Key, Key] | undefined = undefined;
-	let block = false;
+	let fen = $state(initialPosition);
+	let perspective: 'white' | 'black' = $state('white');
+	let lastMove: [Key, Key] | undefined = $state(undefined);
+	let block = $state(false);
 	let settingsModal: Settings;
 	let promotionModal: PromotionModal;
 	let gameOverModal: GameOverModal;
 
-	$: gameState = getGameState(fen);
+	let gameState = $derived(getGameState(fen));
 
-	let config: Config;
-	$: {
-		const gameState = getGameState(fen);
-		config = {
-			fen,
-			coordinates: false,
-			orientation: perspective,
-			check: gameState.check,
-			turnColor: gameState.currentPlayer,
-			lastMove,
-			animation: {
-				enabled: true,
-			},
-			movable: {
-				color: gameState.currentPlayer,
-				free: false,
-				dests: block ? new Map() : gameState.dests,
-				events: {
-					after: async (from, to) => {
-						lastMove = [from, to];
-						let nextPos = applyMove(fen, from, to);
-						if (!nextPos) {
-							const promotion = await promotionModal.promote();
-							nextPos = applyMove(fen, from, to, promotion);
-						}
-						fen = nextPos;
-						block = true;
-						if (getGameState(nextPos).dests.size === 0) {
-							gameOverModal.open();
-							return;
-						}
-						const result = await calculateMove(nextPos, $depth, $enableQuiescence);
-						fen = result.fen;
-						lastMove = [result.from, result.to];
-						if (getGameState(result.fen).dests.size === 0) {
-							gameOverModal.open();
-							return;
-						}
-						block = false;
-					},
+	let config = $derived<Config>({
+		fen,
+		coordinates: false,
+		orientation: perspective,
+		check: gameState.check,
+		turnColor: gameState.currentPlayer,
+		lastMove,
+		animation: {
+			enabled: true,
+		},
+		movable: {
+			color: gameState.currentPlayer,
+			free: false,
+			dests: block ? new Map() : gameState.dests,
+			events: {
+				after: async (from, to) => {
+					lastMove = [from, to];
+					let nextPos = applyMove(fen, from, to);
+					if (!nextPos) {
+						const promotion = await promotionModal.promote();
+						nextPos = applyMove(fen, from, to, promotion);
+					}
+					fen = nextPos;
+					block = true;
+					if (getGameState(nextPos).dests.size === 0) {
+						gameOverModal.open();
+						return;
+					}
+					const result = await calculateMove(nextPos, $depth, $enableQuiescence);
+					fen = result.fen;
+					lastMove = [result.from, result.to];
+					if (getGameState(result.fen).dests.size === 0) {
+						gameOverModal.open();
+						return;
+					}
+					block = false;
 				},
 			},
-		};
-	}
+		},
+	});
 
 	function flip(e: MouseEvent) {
 		(e.currentTarget as HTMLElement)?.blur();
