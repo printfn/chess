@@ -7,7 +7,7 @@ import globals from 'globals';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
 	js.configs.recommended,
-	...ts.configs.recommended,
+	...ts.configs.strict,
 	...svelte.configs['flat/recommended'],
 	prettier,
 	...svelte.configs['flat/prettier'],

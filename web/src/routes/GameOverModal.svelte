@@ -9,9 +9,11 @@
 
 	let isOpen = $state(false);
 	let gameOverTitle = $derived(check ? 'Checkmate' : 'Stalemate');
-	let gameOverMessage = $derived(check
-		? `${currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate.`
-		: 'The game is drawn by stalemate.');
+	let gameOverMessage = $derived(
+		check
+			? `${currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate.`
+			: 'The game is drawn by stalemate.',
+	);
 
 	export function open() {
 		isOpen = true;
@@ -24,4 +26,3 @@
 		<Button class="ml-auto">Close</Button>
 	</svelte:fragment>
 </Modal>
-

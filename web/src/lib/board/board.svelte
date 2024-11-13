@@ -7,7 +7,7 @@
 	type Props = {
 		config: Config;
 		class?: string;
-	}
+	};
 
 	let { config, class: className = '' }: Props = $props();
 

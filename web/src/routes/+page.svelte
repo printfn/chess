@@ -101,6 +101,9 @@
 	</div>
 </div>
 
-<GameOverModal bind:this={gameOverModal} check={gameState.check} currentPlayer={gameState.currentPlayer} />
+<GameOverModal
+	bind:this={gameOverModal}
+	check={gameState.check}
+	currentPlayer={gameState.currentPlayer} />
 <PromotionModal bind:this={promotionModal} />
 <Settings bind:this={settingsModal} />
