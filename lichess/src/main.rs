@@ -13,7 +13,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 
 	fern::Dispatch::new()
 		.format(move |out, message, record| {
-			let date = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S%.9f");
+			let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.9fZ");
 			let level_color = colors_level.get_color(&record.level());
 			let lfg = level_color.to_fg_str();
 			let level = match record.level() {
