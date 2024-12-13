@@ -1,10 +1,7 @@
-// use base64::{engine::general_purpose::STANDARD, Engine};
 use futures::{pin_mut, AsyncBufReadExt, Stream, TryStreamExt};
 use log::{debug, error, info, trace};
-// use rand::{thread_rng, RngCore};
 use reqwest::Method;
 use serde::Deserialize;
-// use sha2::Digest;
 use std::{env, fmt, fs, io, time};
 
 #[derive(Deserialize, Debug, Clone)]
@@ -150,14 +147,22 @@ pub struct Client {
 	num_games: std::sync::Arc<tokio::sync::Mutex<usize>>,
 }
 
-const SCOPES: &[&str] = &[
-	"preference:read",
-	"preference:write",
-	"challenge:read",
-	"challenge:write",
-	"challenge:bulk",
-	"bot:play",
-];
+fn get_lichess_create_token_url() -> String {
+	let scopes = &[
+		"preference:read",
+		"preference:write",
+		"challenge:read",
+		"challenge:write",
+		"challenge:bulk",
+		"bot:play",
+	];
+	let mut url = String::from("https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29");
+	for &scope in scopes {
+		url.push_str("&scopes%5b%5d=");
+		url.push_str(&String::from(scope).replace(':', "%3a"));
+	}
+	url
+}
 
 impl Client {
 	async fn get_token(_client: &reqwest::Client) -> eyre::Result<String> {
@@ -176,35 +181,8 @@ impl Client {
 					}
 				};
 				error!("could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{cwd}");
-				let mut url = String::from("https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29");
-				for &scope in SCOPES {
-					url.push_str("&scopes%5b%5d=");
-					url.push_str(&String::from(scope).replace(':', "%3a"));
-				}
-				info!("navigate to this URL to create a new token: {url}");
+				info!("navigate to this URL to create a new token: {}", get_lichess_create_token_url());
 				panic!();
-				/*info!("could not find existing token in `token.txt`, initiating OAuth login...");
-				let mut code_verifier_bytes = [0; 96];
-				thread_rng().fill_bytes(&mut code_verifier_bytes[..]);
-				let hash = hex::encode(sha2::Sha256::digest(STANDARD.encode(code_verifier_bytes)));
-				let mut state_bytes = [0; 96];
-				thread_rng().fill_bytes(&mut state_bytes);
-				let state = STANDARD.encode(state_bytes);
-				trace!("> GET https://lichess.org/oauth");
-				let response = client
-					.get("https://lichess.org/oauth")
-					.query(&[
-						("response_type", "code"),
-						("client_id", "rust-chess-bot (github.com/printfn/chess)"),
-						("redirect_uri", "http://localhost"),
-						("code_challenge_method", "S256"),
-						("code_challenge", &hash),
-						("scope", "preference:read preference:write challenge:read challenge:write challenge:bulk bot:play"),
-						("state", &state),
-					]).build()?;
-				println!("Navigate to this URL to log in: {}", response.url());
-				// trace!("< {}", response.status());
-				todo!()*/
 			}
 			Err(e) => {
 				return Err(
