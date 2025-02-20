@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:latest as builder
+FROM --platform=$BUILDPLATFORM rust:latest AS builder
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 WORKDIR /usr/src/chess
