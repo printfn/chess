@@ -12,7 +12,7 @@ impl Pos {
 	pub fn new(file: File, rank: Rank) -> Self {
 		let r: u8 = rank.value();
 		let f: u8 = file.value();
-		Self { pos: f << 3 | r }
+		Self { pos: (f << 3) | r }
 	}
 
 	/// Returns this position's file

@@ -18,11 +18,11 @@ pub use consts::{
 	ADJACENT_BITBOARDS, BISHOP_MOVE_BITBOARDS, BLACK_PAWN_CHECK_BITBOARDS, KNIGHT_BITBOARDS,
 	ROOK_MOVE_BITBOARDS, WHITE_PAWN_CHECK_BITBOARDS,
 };
-pub use direction::{Direction, ADJACENT_DIRECTIONS, DIAGONAL_DIRECTIONS, ORTHOGONAL_DIRECTIONS};
-pub use file::{File, FILES};
+pub use direction::{ADJACENT_DIRECTIONS, DIAGONAL_DIRECTIONS, Direction, ORTHOGONAL_DIRECTIONS};
+pub use file::{FILES, File};
 pub use game_result::{DrawReason, GameResult, WinReason};
 pub use mov::Move;
-pub use piece::{Piece, HOME_ROW};
+pub use piece::{HOME_ROW, Piece};
 pub use player::Player;
 pub use pos::Pos;
-pub use rank::{Rank, RANKS};
+pub use rank::{RANKS, Rank};

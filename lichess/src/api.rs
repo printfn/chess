@@ -1,4 +1,4 @@
-use futures::{pin_mut, AsyncBufReadExt, Stream, TryStreamExt};
+use futures::{AsyncBufReadExt, Stream, TryStreamExt, pin_mut};
 use log::{debug, error, info, trace};
 use reqwest::Method;
 use serde::Deserialize;
@@ -156,7 +156,9 @@ fn get_lichess_create_token_url() -> String {
 		"challenge:bulk",
 		"bot:play",
 	];
-	let mut url = String::from("https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29");
+	let mut url = String::from(
+		"https://lichess.org/account/oauth/token/create?description=rust+bot+api+%28https%3a%2f%2fgithub.com%2fprintfn%2fchess%29",
+	);
 	for &scope in scopes {
 		url.push_str("&scopes%5b%5d=");
 		url.push_str(&String::from(scope).replace(':', "%3a"));
@@ -180,8 +182,13 @@ impl Client {
 						"".to_string()
 					}
 				};
-				error!("could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{cwd}");
-				info!("navigate to this URL to create a new token: {}", get_lichess_create_token_url());
+				error!(
+					"could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{cwd}"
+				);
+				info!(
+					"navigate to this URL to create a new token: {}",
+					get_lichess_create_token_url()
+				);
 				panic!();
 			}
 			Err(e) => {
@@ -275,7 +282,7 @@ impl Client {
 		&self,
 		method: reqwest::Method,
 		path: &str,
-	) -> eyre::Result<impl Stream<Item = Result<T, eyre::Error>>>
+	) -> eyre::Result<impl Stream<Item = Result<T, eyre::Error>> + use<T>>
 	where
 		T: fmt::Debug,
 		for<'de> T: serde::Deserialize<'de>,
@@ -296,7 +303,7 @@ impl Client {
 					"did not receive a keep-alive from Lichess in time",
 				)
 			})
-			.try_filter_map(|line| async move {
+			.try_filter_map(async |line| {
 				let line = line?;
 				if line.is_empty() {
 					trace!("< keep-alive");
@@ -359,7 +366,7 @@ impl Client {
 	pub async fn stream_events(&self) -> eyre::Result<()> {
 		self.ndjson_request::<Event>(Method::GET, "stream/event")
 			.await?
-			.try_for_each_concurrent(None, |event| async move {
+			.try_for_each_concurrent(None, async |event| {
 				match event {
 					Event::Challenge { challenge } => {
 						info!("received challenge with id '{}'", challenge.id);
@@ -486,7 +493,10 @@ impl Client {
 					} else if black.id == self.player_id {
 						playing_as_white = false;
 					} else {
-						error!("attempted to play game between players '{}' and '{}' while logged in as '{}'", white.id, black.id, self.player_id);
+						error!(
+							"attempted to play game between players '{}' and '{}' while logged in as '{}'",
+							white.id, black.id, self.player_id
+						);
 					}
 					self.handle_state_update(id, &state.status, &state.moves, playing_as_white)
 						.await?;

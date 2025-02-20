@@ -77,7 +77,7 @@ impl Bitboard {
 		let u2 = (self.value << 2) & 0xfcfcfcfcfcfcfcfc;
 		let a = d1 | u1;
 		let b = d2 | u2;
-		Self::new(a << 16 | a >> 16 | b << 8 | b >> 8)
+		Self::new((a << 16) | (a >> 16) | (b << 8) | (b >> 8))
 	}
 
 	pub fn white_pawn_attack_shifts(&self) -> Self {

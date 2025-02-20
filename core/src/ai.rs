@@ -157,7 +157,7 @@ pub fn search(
 
 #[cfg(test)]
 mod tests {
-	use crate::{search, Board};
+	use crate::{Board, search};
 	use std::ops;
 
 	#[test]

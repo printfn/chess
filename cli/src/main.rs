@@ -1,4 +1,4 @@
-use chess_core::{search, Board};
+use chess_core::{Board, search};
 use std::{io::Write, ops};
 
 fn random_u32() -> u32 {
