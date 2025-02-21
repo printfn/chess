@@ -20,7 +20,7 @@
 	}
 </script>
 
-<Modal title={gameOverTitle} bind:open={isOpen} autoclose outsideclose backdropClass="fixed inset-0 z-40 dark:bg-gray-900/80 bg-gray-900/50">
+<Modal title={gameOverTitle} bind:open={isOpen} autoclose outsideclose>
 	<P>{gameOverMessage}</P>
 	<svelte:fragment slot="footer">
 		<Button class="ml-auto">Close</Button>

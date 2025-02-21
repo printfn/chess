@@ -25,7 +25,7 @@
 	}
 </script>
 
-<Modal title="Promotion" open={Boolean(onExit)} dismissable={false} backdropClass="fixed inset-0 z-40 dark:bg-gray-900/80 bg-gray-900/50">
+<Modal title="Promotion" open={Boolean(onExit)} dismissable={false}>
 	<Label>
 		Choose which piece to promote to:
 		<Select class="mt-2" items={pieces} placeholder="" bind:value={piece} />

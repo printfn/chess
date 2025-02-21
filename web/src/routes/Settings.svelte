@@ -16,7 +16,7 @@
 	}
 </script>
 
-<Modal title="Settings" bind:open={isOpen} autoclose outsideclose backdropClass="fixed inset-0 z-40 dark:bg-gray-900/80 bg-gray-900/50">
+<Modal title="Settings" bind:open={isOpen} autoclose outsideclose>
 	<Label>
 		Theme
 		<Select class="mt-2" bind:value={$theme} placeholder="" items={themes} />
