@@ -2,7 +2,7 @@ use futures::{AsyncBufReadExt, Stream, TryStreamExt, pin_mut};
 use log::{debug, error, info, trace};
 use reqwest::Method;
 use serde::Deserialize;
-use std::{env, fmt, fs, io, time};
+use std::{env, fmt, io, time};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct GetProfileResponse {
@@ -173,17 +173,17 @@ impl Client {
 			return Ok(token.trim().to_string());
 		}
 		trace!("reading file `token.txt`");
-		Ok(match fs::metadata("token.txt") {
+		Ok(match tokio::fs::metadata("token.txt").await {
 			Err(e) if e.kind() == io::ErrorKind::NotFound => {
-				let cwd = match env::current_dir() {
-					Ok(d) => format!(" {d:?}"),
-					Err(e) => {
-						error!("failed to get current working directory: {e}");
-						"".to_string()
-					}
-				};
 				error!(
-					"could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{cwd}"
+					"could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{}",
+					match env::current_dir() {
+						Ok(d) => format!(" {d:?}"),
+						Err(e) => {
+							error!("failed to get current working directory: {e}");
+							"".to_string()
+						}
+					}
 				);
 				info!(
 					"navigate to this URL to create a new token: {}",
@@ -198,7 +198,10 @@ impl Client {
 			}
 			Ok(_) => {
 				trace!("reading lichess token from `token.txt`");
-				fs::read_to_string("token.txt")?.trim().to_string()
+				tokio::fs::read_to_string("token.txt")
+					.await?
+					.trim()
+					.to_string()
 			}
 		})
 	}

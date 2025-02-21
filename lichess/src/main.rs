@@ -13,7 +13,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 
 	fern::Dispatch::new()
 		.format(move |out, message, record| {
-			let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.9fZ");
+			let date = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.9f%:z");
 			let level_color = colors_level.get_color(&record.level());
 			let lfg = level_color.to_fg_str();
 			let level = match record.level() {
@@ -32,7 +32,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
 				"\x1b[{fg}m{date} \x1b[{lfg}m{level}\x1b[0m {target} {file}:{line} \x1b[{fg}m{message}\x1b[0m",
 			))
 		})
-		.chain(std::io::stdout())
+		.chain(std::io::stderr())
 		.apply()?;
 	Ok(())
 }
