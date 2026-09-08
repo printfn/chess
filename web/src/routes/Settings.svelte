@@ -23,7 +23,7 @@
 	</Label>
 	<Label>
 		Calculation Depth
-		<Select class="mt-2" value={$depth.toString()} on:change={changeDepth} placeholder="">
+		<Select class="mt-2" value={$depth.toString()} onchange={changeDepth} placeholder="">
 			<option value="0">0</option>
 			<option value="1">1</option>
 			<option value="2">2</option>
@@ -36,7 +36,7 @@
 	<A target="_blank" rel="noreferrer noopener" href="https://github.com/printfn/chess">
 		View Source Code on GitHub
 	</A>
-	<svelte:fragment slot="footer">
+	{#snippet footer()}
 		<Button class="ml-auto">Close</Button>
-	</svelte:fragment>
+	{/snippet}
 </Modal>

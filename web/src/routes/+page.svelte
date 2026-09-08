@@ -92,11 +92,11 @@
 		{/if}
 		<Board {config} class="aspect-square" />
 		<div class="grid gap-2 my-2">
-			<Button outline on:click={flip}>Flip</Button>
-			<Button outline on:click={() => settingsModal.open()}>Settings</Button>
-			<Button outline on:click={e => newGame(e, 'white')}>New Game (White)</Button>
-			<Button outline on:click={e => newGame(e, 'black')}>New Game (Black)</Button>
-			<Button outline on:click={e => newGame(e, 'random')}>New Game (Random)</Button>
+			<Button outline onclick={flip}>Flip</Button>
+			<Button outline onclick={() => settingsModal.open()}>Settings</Button>
+			<Button outline onclick={(e: MouseEvent) => newGame(e, 'white')}>New Game (White)</Button>
+			<Button outline onclick={(e: MouseEvent) => newGame(e, 'black')}>New Game (Black)</Button>
+			<Button outline onclick={(e: MouseEvent) => newGame(e, 'random')}>New Game (Random)</Button>
 		</div>
 	</div>
 </div>

@@ -30,7 +30,7 @@
 		Choose which piece to promote to:
 		<Select class="mt-2" items={pieces} placeholder="" bind:value={piece} />
 	</Label>
-	<svelte:fragment slot="footer">
-		<Button class="ml-auto" on:click={close}>Confirm</Button>
-	</svelte:fragment>
+	{#snippet footer()}
+		<Button class="ml-auto" onclick={close}>Confirm</Button>
+	{/snippet}
 </Modal>

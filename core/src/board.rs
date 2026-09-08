@@ -204,13 +204,12 @@ impl Board {
 					}
 					result.set(target_pos);
 				}
-				if let Some(en_passant_target) = en_passant_target {
-					if pos.offset(capture_dirs[0]) == Some(en_passant_target)
-						|| pos.offset(capture_dirs[1]) == Some(en_passant_target)
+				if let Some(en_passant_target) = en_passant_target
+					&& (pos.offset(capture_dirs[0]) == Some(en_passant_target)
+						|| pos.offset(capture_dirs[1]) == Some(en_passant_target))
 					{
 						result.set(en_passant_target);
 					}
-				}
 				return result;
 			}
 			Piece::Knight => {

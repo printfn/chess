@@ -294,7 +294,7 @@ impl Client {
 			.request::<()>(method, path, None)
 			.await?
 			.bytes_stream()
-			.map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+			.map_err(io::Error::other)
 			.into_async_read()
 			.lines()
 			.map_err(eyre::Report::from);

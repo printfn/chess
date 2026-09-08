@@ -22,7 +22,7 @@
 
 <Modal title={gameOverTitle} bind:open={isOpen} autoclose outsideclose>
 	<P>{gameOverMessage}</P>
-	<svelte:fragment slot="footer">
+	{#snippet footer()}
 		<Button class="ml-auto">Close</Button>
-	</svelte:fragment>
+	{/snippet}
 </Modal>
