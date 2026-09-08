@@ -178,7 +178,7 @@ impl Client {
 				error!(
 					"could not find a valid Lichess token: please set either the LICHESS_TOKEN environment variable or create a `token.txt` file in the current working directory{}",
 					match env::current_dir() {
-						Ok(d) => format!(" {d:?}"),
+						Ok(d) => format!(" {}", d.display()),
 						Err(e) => {
 							error!("failed to get current working directory: {e}");
 							"".to_string()
