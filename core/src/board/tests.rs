@@ -15,15 +15,14 @@ fn single_thread_perft(board: Board, depth: usize) -> usize {
 	if depth == 1 {
 		return moves.len();
 	}
-	let count = moves
+	moves
 		.iter()
 		.map(|mov| {
 			let mut board = board;
 			board.apply_move(*mov);
 			single_thread_perft(board, depth - 1)
 		})
-		.sum();
-	count
+		.sum()
 }
 
 fn perft(board: Board, depth: usize) -> usize {
@@ -38,15 +37,14 @@ fn perft(board: Board, depth: usize) -> usize {
 	if depth == 1 {
 		return moves.len();
 	}
-	let count = moves
+	moves
 		.par_iter()
 		.map(|mov| {
 			let mut board = board;
 			board.apply_move(*mov);
 			perft(board, depth - 1)
 		})
-		.sum();
-	count
+		.sum()
 }
 
 #[track_caller]
